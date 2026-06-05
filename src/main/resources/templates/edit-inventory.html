@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<html
+        xmlns:th="http://www.thymeleaf.org"
+>
+
+<head>
+
+    <title>Edit Inventory</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/bootstrap.min.css}"
+    >
+
+</head>
+
+<body>
+
+<div class="container mt-5">
+
+    <div class="card p-4">
+
+        <h2 class="mb-4">
+
+            Edit Inventory
+
+        </h2>
+
+        <form
+
+                th:action="@{/inventory/update}"
+
+                method="post"
+
+                th:object="${inventory}"
+        >
+
+            <input
+                    type="hidden"
+                    th:field="*{id}"
+            >
+
+            <div class="mb-3">
+                <label>Quantity</label>
+                <input type="number" class="form-control" th:field="*{quantity}">
+            </div>
+
+            <button
+                    class="btn btn-primary"
+            >
+
+                Update
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

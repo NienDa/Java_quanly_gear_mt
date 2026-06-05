@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html
+        xmlns:th="http://www.thymeleaf.org"
+>
+
+<head>
+
+    <title>Inventory</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/bootstrap.min.css}"
+    >
+
+</head>
+
+<body>
+
+<div class="container mt-5">
+
+    <h2 class="mb-4">
+
+        Inventory Management
+
+    </h2>
+
+    <table
+            class="table table-bordered"
+    >
+
+        <thead class="table-dark">
+
+        <tr>
+
+            <th>ID</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Import Date</th>
+            <th>Action</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <tr
+                th:each="i : ${inventories}"
+        >
+
+            <td th:text="${i.id}"></td>
+
+            <td
+                    th:text="${i.product.productName}"
+            >
+            </td>
+
+            <td th:text="${i.quantity}"></td>
+
+            <td th:text="${i.importDate}"></td>
+
+            <td>
+
+                <a
+
+                        th:href=
+                                "@{/inventory/edit/{id}(id=${i.id})}"
+
+                        class="btn btn-warning btn-sm"
+                >
+
+                    Edit
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</body>
+
+</html>

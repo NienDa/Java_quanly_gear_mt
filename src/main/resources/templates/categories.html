@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<html
+        xmlns:th="http://www.thymeleaf.org"
+        lang="en"
+>
+
+<head>
+
+    <title>Categories</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/bootstrap.min.css}"
+    >
+
+</head>
+
+<body>
+
+<div class="container mt-5">
+
+    <div
+            class="d-flex justify-content-between mb-3"
+    >
+
+        <h2>
+            Category Management
+        </h2>
+
+        <a
+                href="/categories/add"
+                class="btn btn-primary"
+        >
+            Add Category
+        </a>
+
+    </div>
+
+    <table
+            class="table table-bordered"
+    >
+
+        <thead class="table-dark">
+
+        <tr>
+
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Action</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <tr
+                th:each="c : ${categories}"
+        >
+
+            <td th:text="${c.id}"></td>
+
+            <td th:text="${c.categoryName}"></td>
+
+            <td th:text="${c.description}"></td>
+
+            <td>
+
+                <a th:if="${session.role=='ADMIN' or session.role=='STAFF'}"
+                        th:href="@{/categories/edit/{id}(id=${c.id})}"
+                        class="btn btn-warning btn-sm"
+                >
+                    Edit
+                </a>
+
+                <a th:if="${session.role=='ADMIN'}"
+                        th:href="@{/categories/delete/{id}(id=${c.id})}"
+                        class="btn btn-danger btn-sm"
+                >
+                    Delete
+                </a>
+
+            </td>
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</body>
+</html>

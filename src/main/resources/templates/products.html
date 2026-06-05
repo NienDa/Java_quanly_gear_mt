@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <title>Products</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/bootstrap.min.css}"
+    >
+
+</head>
+
+<body>
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between mb-3">
+
+        <h2>
+            Product Management
+        </h2>
+
+        <a th:if="${session.role=='ADMIN' or session.role=='STAFF'}"
+                href="/add"
+                class="btn btn-primary"
+        >
+            Add Product
+        </a>
+
+    </div>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+
+        <tr>
+
+            <th>ID</th>
+            <th>Name</th>
+            <th>Brand</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Action</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <tr th:each="p : ${listsp}">
+
+            <td th:text="${p.id}"></td>
+
+            <td th:text="${p.getProductName()}"></td>
+
+            <td th:text="${p.getBrand()}"></td>
+
+            <td th:text="${p.getPrice()}"></td>
+
+            <td th:text="${p.getStatus()}"></td>
+
+            <td>
+
+                <a th:if="${session.role=='ADMIN' or session.role=='STAFF'}"
+                        th:href="@{/edit/{id}(id=${p.id})}"
+                        class="btn btn-warning btn-sm"
+                >
+                    Edit
+                </a>
+
+                <a th:if="${session.role=='ADMIN'}"
+                        th:href="@{/del/{id}(id=${p.id})}"
+                        class="btn btn-danger btn-sm"
+                >
+                    Delete
+                </a>
+                <a
+                        th:if=
+                                "${session.role == 'CUSTOMER'}"
+
+                        th:href="@{/buy/{id}(id=${p.id})}"
+
+                        class="btn btn-success btn-sm"
+
+                >
+
+                    Buy
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</body>
+</html>
