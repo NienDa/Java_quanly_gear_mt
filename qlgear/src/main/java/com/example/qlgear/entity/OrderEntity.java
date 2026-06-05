@@ -1,9 +1,18 @@
 package com.example.qlgear.entity;
 
-import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "orders")
@@ -27,6 +36,9 @@ public class OrderEntity {
 
     @OneToMany(mappedBy = "order")
     private List<OrderItem> orderItems;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.EAGER)
+    private List<Payment> payments;
 
     public OrderEntity() {
     }
@@ -86,5 +98,13 @@ public class OrderEntity {
 
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
+    }
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
     }
 }

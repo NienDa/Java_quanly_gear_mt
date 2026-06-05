@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng Ký Tài Khoản - Gear Shop</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .register-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            width: 450px;
+            padding: 2.5rem;
+        }
+
+        .register-title {
+            font-weight: bold;
+            color: #1a1d20;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .btn-primary {
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.6rem;
+        }
+
+        .login-link {
+            color: #0d6efd;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-card">
+        <div class="text-center mb-4">
+            <h2 class="register-title">Register</h2>
+        </div>
+
+        <form th:action="@{/register}" method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username *</label>
+                <div class="input-group">
+                    <input type="text" id="username" name="username" class="form-control" placeholder="tên đăng nhập"
+                        required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password *</label>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="******"
+                        required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="fullName" class="form-label">Họ tên *</label>
+                <div class="input-group">
+                    <input type="text" id="fullName" name="fullName" class="form-control" placeholder="Nhập họ và tên"
+                        required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <div class="input-group">
+                    <input type="email" id="email" name="email" class="form-control" placeholder="abc@mail.com">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="phone" class="form-label">Số điện thoại</label>
+                <div class="input-group">
+                    <input type="text" id="phone" name="phone" class="form-control" placeholder="+84">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-2">
+                Đăng Ký
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <span class="text-muted">Đã có tài khoản?</span>
+            <a href="/login" class="login-link ms-1">Đăng nhập ngay</a>
+            <div class="mt-2">
+                <a href="/" class="text-secondary text-decoration-none small">Trang Chủ</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

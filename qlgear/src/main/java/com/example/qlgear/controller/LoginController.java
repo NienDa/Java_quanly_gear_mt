@@ -5,6 +5,7 @@ import com.example.qlgear.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -40,6 +41,20 @@ public class LoginController {
     @GetMapping("/logout")
     public String logout(HttpSession session){
         session.invalidate();
+        return "redirect:/login";
+    }
+
+    // page register
+    @GetMapping("/register")
+    public String register(){
+        return "register";
+    }
+
+    // logic register
+    @PostMapping("/register")
+    public String register(@ModelAttribute User user){
+        user.setRole("CUSTOMER"); // Mặc định tài khoản đăng ký mới là CUSTOMER
+        repo.save(user);
         return "redirect:/login";
     }
 }

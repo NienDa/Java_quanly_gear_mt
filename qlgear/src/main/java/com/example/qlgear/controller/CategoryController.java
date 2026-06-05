@@ -2,6 +2,7 @@ package com.example.qlgear.controller;
 
 import com.example.qlgear.entity.Category;
 import com.example.qlgear.service.CategoryService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,10 @@ public class CategoryController {
     }
     // list
     @GetMapping("/categories")
-    public String list(Model model){
+    public String list(Model model, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
 
         model.addAttribute(
                 "categories",
@@ -29,7 +33,10 @@ public class CategoryController {
 
     // add form
     @GetMapping("/categories/add")
-    public String add(Model model){
+    public String add(Model model, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
 
         model.addAttribute(
                 "category",
@@ -42,8 +49,12 @@ public class CategoryController {
     // save
     @PostMapping("/categories/save")
     public String save(
-            @ModelAttribute Category category
+            @ModelAttribute Category category,
+            HttpSession session
     ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
 
         service.addCate(category);
 
@@ -54,8 +65,12 @@ public class CategoryController {
     @GetMapping("/categories/edit/{id}")
     public String edit(
             @PathVariable Long id,
-            Model model
+            Model model,
+            HttpSession session
     ) {
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
 
         model.addAttribute(
                 "category",
@@ -69,8 +84,12 @@ public class CategoryController {
     @PostMapping("/categories/update/{id}")
     public String update(
             @PathVariable Long id,
-            @ModelAttribute Category category
+            @ModelAttribute Category category,
+            HttpSession session
     ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
         service.updateCate(category,id);
         return "redirect:/categories";
     }
@@ -78,8 +97,12 @@ public class CategoryController {
     // delete
     @GetMapping("/categories/delete/{id}")
     public String delete(
-            @PathVariable Long id
+            @PathVariable Long id,
+            HttpSession session
     ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
         service.delCate_id(id);
         return "redirect:/categories";
     }

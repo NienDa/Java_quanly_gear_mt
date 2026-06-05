@@ -1,21 +1,27 @@
 package com.example.qlgear.service;
 
-import com.example.qlgear.entity.Category;
-import com.example.qlgear.entity.Product;
-import com.example.qlgear.repository.CategoryRepository;
-import com.example.qlgear.repository.ProductRepository;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.example.qlgear.entity.Category;
+import com.example.qlgear.entity.Inventory;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.repository.CategoryRepository;
+import com.example.qlgear.repository.InventoryRepository;
+import com.example.qlgear.repository.ProductRepository;
 
 @Service
 public class ProductService {
     private final ProductRepository repo;
     private final CategoryRepository repoCate;
-    public ProductService(ProductRepository repo,CategoryRepository repoCate){
+    private final InventoryRepository repoInven;
+
+    public ProductService(ProductRepository repo, CategoryRepository repoCate, InventoryRepository repoInven){
         this.repo=repo;
         this.repoCate=repoCate;
+        this.repoInven=repoInven;
     }
     //get all
     public List<Product> getAllProducts() {
@@ -36,7 +42,13 @@ public class ProductService {
     public void addProduct(Product product) {
         Category cat=repoCate.findById(product.getCategory().getId()).orElse(null);
         product.setCategory(cat);
-        repo.save(product);
+        Product savedProduct = repo.save(product);
+
+        Inventory inven = new Inventory();
+        inven.setProduct(savedProduct);
+        inven.setQuantity(0);
+        inven.setImportDate(LocalDate.now());
+        repoInven.save(inven);
     }
 
     // cập nhật sản phẩm

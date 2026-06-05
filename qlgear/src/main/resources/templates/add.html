@@ -5,133 +5,95 @@
 
     <title>Add Product</title>
 
-    <link
-            rel="stylesheet"
-            th:href="@{/css/bootstrap.min.css}"
-    >
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
 
 </head>
 
 <body>
 
-<div class="container mt-5">
+    <div class="container mt-5">
 
-    <div class="card p-4">
+        <div class="card p-4">
 
-        <h2 class="mb-4">
-            Add Product
-        </h2>
+            <h2 class="mb-4">
+                Add Product
+            </h2>
 
-        <form
-                th:action="@{/add/save}"
-                method="post"
-                th:object="${product}"
-        >
+            <form th:action="@{/add/save}" method="post" th:object="${product}" enctype="multipart/form-data">
 
-            <div class="mb-3">
+                <div class="mb-3">
 
-                <label>Product Name</label>
+                    <label>Product Name</label>
 
-                <input
-                        type="text"
-                        class="form-control"
-                        th:field="*{productName}"
-                >
+                    <input type="text" class="form-control" th:field="*{productName}">
 
-            </div>
+                </div>
 
-            <div class="mb-3">
+                <div class="mb-3">
 
-                <label>Brand</label>
+                    <label>Brand</label>
 
-                <input
-                        type="text"
-                        class="form-control"
-                        th:field="*{brand}"
-                >
+                    <input type="text" class="form-control" th:field="*{brand}">
 
-            </div>
+                </div>
 
-            <div class="mb-3">
+                <div class="mb-3">
 
-                <label>Description</label>
+                    <label>Description</label>
 
-                <textarea
-                        class="form-control"
-                        th:field="*{description}">
+                    <textarea class="form-control" th:field="*{description}">
                 </textarea>
 
-            </div>
+                </div>
 
-            <div class="mb-3">
+                <div class="mb-3">
 
-                <label>Price</label>
+                    <label>Price</label>
 
-                <input
-                        type="number"
-                        class="form-control"
-                        th:field="*{price}"
-                >
+                    <input type="number" class="form-control" th:field="*{price}">
 
-            </div>
-            <div class="mb-3">
+                </div>
+                <div class="mb-3">
 
-                <label>
-                    Category
-                </label>
+                    <label>
+                        Category
+                    </label>
 
-                <select
-                        class="form-select"
-                        th:field="*{category}"
-                >
-                    <option
-                            th:each="c : ${categories}"
-                            th:value="${c.id}"
-                            th:text="${c.categoryName}"
-                    >
+                    <select class="form-select" th:field="*{category}">
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.categoryName}">
 
-                    </option>
+                        </option>
 
-                </select>
+                    </select>
 
-            </div>
+                </div>
 
-            <div class="mb-3">
+                <div class="mb-3">
+                    <label>Product Image</label>
+                    <input type="file" name="imageFile" class="form-control" accept="image/*">
+                </div>
 
-                <label>Image URL</label>
+                <div class="mb-3">
 
-                <input
-                        type="text"
-                        class="form-control"
-                        th:field="*{imageUrl}"
-                >
+                    <label>Status</label>
 
-            </div>
+                    <select class="form-select" th:field="*{status}">
+                        <option value="AVAILABLE">Còn hàng</option>
+                        <option value="OUT_OF_STOCK">Hết hàng</option>
+                    </select>
 
-            <div class="mb-3">
+                </div>
 
-                <label>Status</label>
+                <button type="submit" class="btn btn-success ms-1">
+                    Thêm sản phẩm
+                </button>
 
-                <input
-                        type="text"
-                        class="form-control"
-                        th:field="*{status}"
-                >
+            </form>
 
-            </div>
-
-            <button
-                    type="submit"
-                    class="btn btn-success"
-            >
-                Save Product
-            </button>
-
-        </form>
+        </div>
 
     </div>
 
-</div>
-
 </body>
+
 </html>
