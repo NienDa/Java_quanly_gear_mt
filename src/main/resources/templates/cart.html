@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Giỏ Hàng - Gear Shop</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Giỏ Hàng Của Bạn</h2>
+            <a href="/" class="btn btn-secondary">Quay lại Trang Chủ</a>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card p-3 shadow-sm border-0">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Giá</th>
+                                <th>Số lượng</th>
+                                <th>Tổng cộng</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${cartItems}">
+                                <td th:text="${item.product.productName}"></td>
+                                <td
+                                    th:text="${#numbers.formatDecimal(item.product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                </td>
+                                <td>
+                                    <form th:action="@{/cart/update}" method="post"
+                                        class="d-inline-flex align-items-center">
+                                        <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                        <input type="number" name="quantity" th:value="${item.quantity}" min="1"
+                                            class="form-control form-control-sm me-1" style="width: 70px;">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Sửa</button>
+                                    </form>
+                                </td>
+                                <td
+                                    th:text="${#numbers.formatDecimal(item.quantity * item.product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                </td>
+                                <td>
+                                    <a th:href="@{/cart/delete/{id}(id=${item.id})}"
+                                        class="btn btn-sm btn-danger">Xóa</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(cartItems)}">
+                                <td colspan="5" class="text-center py-4 text-muted">Giỏ hàng của bạn đang trống.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-4" th:if="${!#lists.isEmpty(cartItems)}">
+                <div class="card p-4 shadow-sm border-0">
+                    <h4 class="fw-bold">Tổng thanh toán</h4>
+                    <h3 class="text-danger my-3"
+                        th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + ' đ'"></h3>
+
+                    <form th:action="@{/cart/checkout}" method="post">
+                        <label class="form-label fw-bold">Chọn phương thức thanh toán:</label>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD"
+                                    checked>
+                                <label class="form-check-label" for="cod">Thanh toán khi nhận hàng (COD)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="bank"
+                                    value="BANK_TRANSFER">
+                                <label class="form-check-label" for="bank">Chuyển khoản ngân hàng</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Đặt Hàng</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

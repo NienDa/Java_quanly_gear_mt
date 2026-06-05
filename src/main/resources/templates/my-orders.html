@@ -1,69 +1,37 @@
 <!DOCTYPE html>
 
-<html
-        xmlns:th="http://www.thymeleaf.org"
-        lang="en"
->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head>
-
     <title>My Orders</title>
-
-    <link
-            rel="stylesheet"
-            th:href="@{/css/bootstrap.min.css}"
-    >
-
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
 </head>
 
 <body>
-
-<div class="container mt-5">
-
-    <h2 class="mb-4">
-
-        My Orders
-
-    </h2>
-
-    <table
-            class="table table-bordered"
-    >
-
-        <thead class="table-dark">
-
-        <tr>
-
-            <th>ID</th>
-            <th>Order Date</th>
-            <th>Total Price</th>
-            <th>Status</th>
-
-        </tr>
-
-        </thead>
-
-        <tbody>
-
-        <tr
-                th:each="o : ${orders}"
-        >
-
-            <td th:text="${o.id}"></td>
-
-            <td th:text="${o.orderDate}"></td>
-
-            <td th:text="${o.totalPrice}"></td>
-
-            <td th:text="${o.status}"></td>
-
-        </tr>
-
-        </tbody>
-
-    </table>
-
-</div>
-
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Lịch Sử Mua Hàng</h2>
+            <a href="/" class="btn btn-secondary">Quay lại Trang Chủ</a>
+        </div>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Order Date</th>
+                    <th>Total Price</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="o : ${orders}">
+                    <td th:text="${o.id}"></td>
+                    <td th:text="${o.orderDate}"></td>
+                    <td th:text="${o.totalPrice}"></td>
+                    <td th:text="${o.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </body>
+
 </html>

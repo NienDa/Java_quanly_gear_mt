@@ -33,11 +33,25 @@ public class OrderService {
         oi.setProduct(pr);
         oi.setQuantity(1);
         oi.setSubtotal(pr.getPrice());
-        oi.setUnitPrice(oi.getUnitPrice());
+        oi.setUnitPrice(pr.getPrice());
         repoOI.save(oi);
     }
     //ds order
     public List<OrderEntity> getOrder_user(User user){
         return repoO.findByUser(user);
+    }
+
+    // Lấy tất cả đơn hàng (cho Admin)
+    public List<OrderEntity> getAllOrders() {
+        return repoO.findAll();
+    }
+
+    // Cập nhật trạng thái đơn hàng (cho Admin)
+    public void updateOrderStatus(Long orderId, String status) {
+        OrderEntity order = repoO.findById(orderId).orElse(null);
+        if (order != null) {
+            order.setStatus(status);
+            repoO.save(order);
+        }
     }
 }

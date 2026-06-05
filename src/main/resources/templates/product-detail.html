@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: #1a1d20 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #0d6efd !important;
+        }
+
+        .product-detail-card {
+            border: none;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .product-gallery {
+            background-color: #ffffff;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid #f0f0f0;
+            min-height: 450px;
+        }
+
+        .product-img {
+            max-height: 380px;
+            max-width: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .product-img:hover {
+            transform: scale(1.03);
+        }
+
+        .product-info-column {
+            padding: 40px;
+        }
+
+        .product-brand {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #6c757d;
+            font-weight: 700;
+        }
+
+        .product-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #1a1d20;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .category-badge {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .product-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #dc3545;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .product-price span.currency {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-left: 5px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1d20;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .product-description {
+            color: #495057;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            white-space: pre-line;
+        }
+
+        .quantity-input {
+            max-width: 90px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 10px 0 0 10px !important;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-pc-display me-2"></i>GEAR SHOP
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="/">Trang Chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="/">Sản Phẩm</a>
+                    </li>
+                    <li class="nav-item" th:if="${session.user != null}">
+                        <a class="nav-link fw-semibold" href="/cart">
+                            <i class="bi bi-cart3 me-1"></i>Giỏ Hàng
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${session.user != null}">
+                        <a class="nav-link fw-semibold" href="/my-orders">Lịch Sử Mua Hàng</a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2">
+                    <a th:if="${session.user == null}" href="/login"
+                        class="btn btn-warning rounded-pill px-4 fw-semibold">
+                        Login
+                    </a>
+                    <a th:if="${session.user == null}" href="/register"
+                        class="btn btn-outline-light rounded-pill px-4 fw-semibold">
+                        Register
+                    </a>
+
+                    <div th:if="${session.user != null}" class="d-flex align-items-center">
+                        <span class="text-white me-3 fw-semibold">
+                            Xin chào, <span th:text="${session.user.username}">Username</span>
+                        </span>
+                        <a href="/logout" class="btn btn-danger btn-sm rounded-pill px-3">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none"><i
+                            class="bi bi-house-door-fill"></i> Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Chi tiết sản phẩm</li>
+            </ol>
+        </nav>
+
+        <div class="card product-detail-card">
+            <div class="row g-0">
+                <div class="col-md-6">
+                    <div class="product-gallery">
+                        <img th:src="@{/images/{img}(img=${product.imageUrl})}" class="product-img img-fluid"
+                            alt="Product Image">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="product-info-column">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="product-brand" th:text="${product.brand}">Brand</span>
+                            <div>
+                                <span class="badge bg-success status-badge" th:if="${product.status == 'AVAILABLE'}">Còn
+                                    hàng</span>
+                                <span class="badge bg-danger status-badge"
+                                    th:if="${product.status == 'OUT_OF_STOCK'}">Hết hàng</span>
+                            </div>
+                        </div>
+
+                        <h1 class="product-title" th:text="${product.productName}">Product Name</h1>
+
+                        <span class="category-badge" th:text="${product.category.categoryName}">Category</span>
+
+                        <div class="product-price">
+                            <span
+                                th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}">Price</span>
+                            <span class="currency">VND</span>
+                        </div>
+
+                        <div class="section-title">Mô tả </div>
+                        <p class="product-description" th:text="${product.description}">
+                            Description text...
+                        </p>
+
+                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="mt-4">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="input-group" style="max-width: 100px;">
+                                    <input type="number" name="quantity" value="1" min="1"
+                                        class="form-control quantity-input"
+                                        style="border-radius: 0 10px 10px 0 !important; border-left: none;">
+                                </div>
+                                <button type="submit"
+                                    class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow d-flex align-items-center gap-2">
+                                    Thêm vào giỏ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+
+</html>
