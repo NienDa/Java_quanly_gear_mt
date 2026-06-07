@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class InventoryController {
@@ -58,13 +59,19 @@ public class InventoryController {
     @PostMapping("/inventory/update")
     public String updateInventory(
             @ModelAttribute Inventory inventory,
-            HttpSession session
+            HttpSession session,
+            RedirectAttributes redirectAttributes
     ){
         String role = (String) session.getAttribute("role");
         if (role == null) return "redirect:/login";
         if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
 
-        service.edit_Inven(inventory);
+        try {
+            service.edit_Inven(inventory);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/inventory/edit/" + inventory.getId();
+        }
         return "redirect:/inventory";
     }
 }

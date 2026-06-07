@@ -129,6 +129,13 @@ BEGIN
     UPDATE inventories
     SET quantity = quantity - NEW.quantity
     WHERE product_id = NEW.product_id;
+    
+    -- Tự động chuyển trạng thái sản phẩm sang hết hàng nếu số lượng về 0 hoặc ít hơn
+    IF (SELECT quantity FROM inventories WHERE product_id = NEW.product_id) <= 0 THEN
+        UPDATE products
+        SET status = 'OUT_OF_STOCK'
+        WHERE id = NEW.product_id;
+    END IF;
 END $$
 
 -- Trigger 3 (MỚI): Tự động tính toán subtotal (thành tiền) của order_item trước khi lưu

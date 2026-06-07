@@ -42,6 +42,8 @@ public class ProductService {
     public void addProduct(Product product) {
         Category cat=repoCate.findById(product.getCategory().getId()).orElse(null);
         product.setCategory(cat);
+        // Do số lượng tồn kho ban đầu khi tạo mới luôn bằng 0, nên trạng thái mặc định phải là OUT_OF_STOCK
+        product.setStatus("OUT_OF_STOCK");
         Product savedProduct = repo.save(product);
 
         Inventory inven = new Inventory();
@@ -63,7 +65,7 @@ public class ProductService {
         oldProduct.setImageUrl(newProduct.getImageUrl());
         oldProduct.setStatus(newProduct.getStatus());
         Category ca=repoCate.findById(newProduct.getCategory().getId()).orElse(null);
-        oldProduct.setCategory(newProduct.getCategory());
+        oldProduct.setCategory(ca);
 
         repo.save(oldProduct);
     }
@@ -84,4 +86,24 @@ public class ProductService {
         return repo.findByCategoryId(id);
     }
 
+    // Lọc theo category và sắp xếp theo giá/ngẫu nhiên
+    public List<Product> getProducts(Long categoryId, String sort) {
+        List<Product> products;
+        if (categoryId == null) {
+            products = new java.util.ArrayList<>(repo.findAll());
+        } else {
+            products = new java.util.ArrayList<>(repo.findByCategoryId(categoryId));
+        }
+
+        if ("priceAsc".equals(sort)) {
+            products.sort((p1, p2) -> Double.compare(p1.getPrice(), p2.getPrice()));
+        } else if ("priceDesc".equals(sort)) {
+            products.sort((p1, p2) -> Double.compare(p2.getPrice(), p1.getPrice()));
+        } else {
+            java.util.Collections.shuffle(products);
+        }
+        return products;
+    }
+
 }
+

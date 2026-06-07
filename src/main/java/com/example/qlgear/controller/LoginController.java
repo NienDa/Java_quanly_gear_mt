@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class LoginController {
@@ -52,7 +53,17 @@ public class LoginController {
 
     // logic register
     @PostMapping("/register")
-    public String register(@ModelAttribute User user){
+    public String register(@ModelAttribute User user, RedirectAttributes redirectAttributes){
+        if (repo.existsByUsername(user.getUsername())) {
+            redirectAttributes.addFlashAttribute("error", "Username đã tồn tại. Vui lòng chọn tên khác!");
+            return "redirect:/register";
+        }
+        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+            if (!user.getEmail().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+                redirectAttributes.addFlashAttribute("error", "Định dạng email không hợp lệ!");
+                return "redirect:/register";
+            }
+        }
         user.setRole("CUSTOMER"); // Mặc định tài khoản đăng ký mới là CUSTOMER
         repo.save(user);
         return "redirect:/login";

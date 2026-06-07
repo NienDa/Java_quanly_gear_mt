@@ -1,0 +1,4249 @@
+﻿================================================================
+File: pom.xml
+================================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.14</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>qlgear</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name/>
+	<description/>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+================================================================
+File: ql_gear_computer.sql
+================================================================
+-- CÆ  Sá» Dá»® LIá»†U: ql_gear_computer
+CREATE DATABASE IF NOT EXISTS ql_gear_computer;
+USE ql_gear_computer;
+
+-- XĂ³a cĂ¡c báº£ng cÅ© náº¿u tá»“n táº¡i (theo thá»© tá»± khĂ³a ngoáº¡i Ä‘á»ƒ trĂ¡nh lá»—i)
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS inventories;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS users;
+
+
+-- Báº£ng ngÆ°á»i dĂ¹ng
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(150),
+    email VARCHAR(150),
+    phone VARCHAR(20),
+    role VARCHAR(20)
+);
+
+-- Báº£ng danh má»¥c sáº£n pháº©m
+CREATE TABLE categories (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    category_name VARCHAR(100) NOT NULL,
+    description TEXT
+);
+
+-- Báº£ng sáº£n pháº©m
+CREATE TABLE products (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    product_name VARCHAR(200) NOT NULL,
+    brand VARCHAR(100),
+    description TEXT,
+    price DOUBLE,
+    image_url VARCHAR(255),
+    status VARCHAR(30),
+    category_id BIGINT,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+    CONSTRAINT chk_price CHECK (price > 0)
+);
+
+-- Báº£ng tá»“n kho
+CREATE TABLE inventories (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    quantity INT DEFAULT 0,
+    import_date DATE,
+    product_id BIGINT UNIQUE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    CONSTRAINT chk_quantity CHECK (quantity >= 0)
+);
+
+-- Báº£ng Ä‘Æ¡n hĂ ng
+CREATE TABLE orders (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_date DATETIME,
+    total_price DOUBLE DEFAULT 0,
+    status VARCHAR(30),
+    user_id BIGINT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Báº£ng chi tiáº¿t Ä‘Æ¡n hĂ ng
+CREATE TABLE order_items (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    quantity INT,
+    unit_price DOUBLE,
+    subtotal DOUBLE,
+    order_id BIGINT,
+    product_id BIGINT,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+);
+
+-- Báº£ng chi tiáº¿t giá» hĂ ng (Má»I)
+CREATE TABLE cart_items (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    quantity INT DEFAULT 1,
+    user_id BIGINT,
+    product_id BIGINT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_user_product (user_id, product_id),
+    CONSTRAINT chk_cart_quantity CHECK (quantity > 0)
+);
+
+-- Báº£ng thanh toĂ¡n Ä‘Æ¡n hĂ ng (Má»I)
+CREATE TABLE payments (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    payment_date DATETIME,
+    payment_method VARCHAR(50), 
+    amount DOUBLE,
+    status VARCHAR(30), 
+    order_id BIGINT,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+
+-- 2. Táº O CĂC TRIGGERS
+DELIMITER $$
+
+-- Trigger 1: Kiá»ƒm tra tá»“n kho trÆ°á»›c khi Ä‘áº·t hĂ ng (náº¿u khĂ´ng Ä‘á»§ nĂ©m lá»—i)
+CREATE TRIGGER trg_check_inventory
+BEFORE INSERT ON order_items
+FOR EACH ROW
+BEGIN
+    DECLARE current_stock INT;
+    
+    SELECT quantity INTO current_stock
+    FROM inventories
+    WHERE product_id = NEW.product_id;
+    
+    IF current_stock IS NULL OR current_stock < NEW.quantity THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Not enough stock';
+    END IF;
+END $$
+
+-- Trigger 2: Cáº­p nháº­t giáº£m sá»‘ lÆ°á»£ng trong kho sau khi thĂªm chi tiáº¿t Ä‘Æ¡n hĂ ng
+CREATE TRIGGER trg_reduce_inventory
+AFTER INSERT ON order_items
+FOR EACH ROW
+BEGIN
+    UPDATE inventories
+    SET quantity = quantity - NEW.quantity
+    WHERE product_id = NEW.product_id;
+    
+    -- Tá»± Ä‘á»™ng chuyá»ƒn tráº¡ng thĂ¡i sáº£n pháº©m sang háº¿t hĂ ng náº¿u sá»‘ lÆ°á»£ng vá» 0 hoáº·c Ă­t hÆ¡n
+    IF (SELECT quantity FROM inventories WHERE product_id = NEW.product_id) <= 0 THEN
+        UPDATE products
+        SET status = 'OUT_OF_STOCK'
+        WHERE id = NEW.product_id;
+    END IF;
+END $$
+
+-- Trigger 3 (Má»I): Tá»± Ä‘á»™ng tĂ­nh toĂ¡n subtotal (thĂ nh tiá»n) cá»§a order_item trÆ°á»›c khi lÆ°u
+CREATE TRIGGER trg_calculate_subtotal
+BEFORE INSERT ON order_items
+FOR EACH ROW
+BEGIN
+    SET NEW.subtotal = NEW.quantity * NEW.unit_price;
+END $$
+
+-- Trigger 4 (Má»I): Tá»± Ä‘á»™ng cáº­p nháº­t tá»•ng giĂ¡ trá»‹ Ä‘Æ¡n hĂ ng (total_price) trong báº£ng orders
+CREATE TRIGGER trg_update_order_total
+AFTER INSERT ON order_items
+FOR EACH ROW
+BEGIN
+    UPDATE orders
+    SET total_price = (SELECT SUM(subtotal) FROM order_items WHERE order_id = NEW.order_id)
+    WHERE id = NEW.order_id;
+END $$
+
+DELIMITER ;
+
+-- 3. Táº O CĂC FUNCTIONS
+DELIMITER $$
+
+-- Function 1: TĂ­nh thĂ nh tiá»n (PhĂ©p nhĂ¢n Ä‘Æ¡n giáº£n)
+CREATE FUNCTION CalculateSubtotal(qty INT, price DOUBLE)
+RETURNS DOUBLE
+DETERMINISTIC
+BEGIN
+    RETURN qty * price;
+END $$
+
+-- Function 2 (Má»I): Láº¥y sá»‘ lÆ°á»£ng hĂ ng cĂ²n tá»“n kho cá»§a má»™t sáº£n pháº©m
+CREATE FUNCTION GetStock(p_product_id BIGINT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE stock_qty INT DEFAULT 0;
+    SELECT quantity INTO stock_qty FROM inventories WHERE product_id = p_product_id;
+    RETURN IFNULL(stock_qty, 0);
+END $$
+
+DELIMITER ;
+
+-- 4. Táº O CĂC PROCEDURES
+DELIMITER $$
+
+-- Procedure 1: Láº¥y danh sĂ¡ch toĂ n bá»™ sáº£n pháº©m
+CREATE PROCEDURE GetAllProducts()
+BEGIN
+    SELECT * FROM products;
+END $$
+
+-- Procedure 2: TĂ­nh tá»•ng doanh thu tá»« cĂ¡c Ä‘Æ¡n hĂ ng thĂ nh cĂ´ng (COMPLETED)
+CREATE PROCEDURE CalculateRevenue()
+BEGIN
+    SELECT SUM(total_price) AS total_revenue
+    FROM orders
+    WHERE status = 'COMPLETED';
+END $$
+
+DELIMITER ;
+
+
+-- 5. Táº O CĂC VIEWS
+-- View 1: Xem chi tiáº¿t thĂ´ng tin sáº£n pháº©m vĂ  sá»‘ lÆ°á»£ng tá»“n kho
+CREATE VIEW product_detail_view AS
+SELECT
+    p.id AS product_id,
+    p.product_name,
+    p.brand,
+    p.price,
+    c.category_name,
+    i.quantity AS stock_quantity
+FROM products p
+LEFT JOIN categories c ON p.category_id = c.id
+LEFT JOIN inventories i ON p.id = i.product_id;
+
+-- View 2 (Má»I): Xem chi tiáº¿t Ä‘Æ¡n hĂ ng kĂ¨m thĂ´ng tin thanh toĂ¡n cá»§a khĂ¡ch hĂ ng
+CREATE VIEW order_detail_view AS
+SELECT 
+    o.id AS order_id,
+    o.order_date,
+    u.full_name AS customer_name,
+    o.total_price,
+    o.status AS order_status,
+    pay.payment_method,
+    pay.status AS payment_status
+FROM orders o
+LEFT JOIN users u ON o.user_id = u.id
+LEFT JOIN payments pay ON o.id = pay.order_id;
+
+
+-- 6. CHĂˆN Dá»® LIá»†U MáºªU 
+-- ChĂ¨n dá»¯ liá»‡u ngÆ°á»i dĂ¹ng
+INSERT INTO users(username, password, full_name, email, phone, role) VALUES
+('admin', '123', 'Administrator', 'admin@gmail.com', '0900000001', 'ADMIN'),
+('staff01', '123', 'Nguyen Van A', 'staff01@gmail.com', '0900000002', 'STAFF'),
+('customer01', '123', 'Tran Van B', 'customer01@gmail.com', '0900000003', 'CUSTOMER'),
+('customer02', '123', 'Le Thi C', 'customer02@gmail.com', '0900000004', 'CUSTOMER');
+
+-- ChĂ¨n dá»¯ liá»‡u danh má»¥c
+INSERT INTO categories(category_name, description) VALUES
+('Gaming Mouse', 'Chuá»™t chÆ¡i game chĂ­nh hĂ£ng'),
+('Keyboard', 'BĂ n phĂ­m cÆ¡ há»c chuyĂªn dá»¥ng'),
+('Headphone', 'Tai nghe chá»¥p tai gaming cĂ³ mic'),
+('Monitor', 'MĂ n hĂ¬nh mĂ¡y tĂ­nh Ä‘á»™ phĂ¢n giáº£i cao');
+
+-- ChĂ¨n dá»¯ liá»‡u sáº£n pháº©m
+INSERT INTO products(product_name, brand, description, price, image_url, status, category_id) VALUES
+('Logitech G102', 'Logitech', 'Gaming mouse RGB siĂªu nháº¡y', 450000, 'g102.jpg', 'AVAILABLE', 1),
+('Razer Viper Mini', 'Razer', 'Lightweight gaming mouse siĂªu nháº¹', 790000, 'viper-mini.jpg', 'AVAILABLE', 1),
+('AKKO 3084', 'AKKO', 'BĂ n phĂ­m cÆ¡ Akko 84 phĂ­m', 1500000, 'akko3084.jpg', 'AVAILABLE', 2),
+('HyperX Cloud II', 'HyperX', 'Tai nghe HyperX Ă¢m thanh giáº£ láº­p 7.1', 1990000, 'cloud2.jpg', 'AVAILABLE', 3),
+('LG UltraGear 24', 'LG', 'MĂ n hĂ¬nh LG 24 inch 144Hz', 4500000, 'lgultragear.jpg', 'AVAILABLE', 4);
+
+-- ChĂ¨n dá»¯ liá»‡u tá»“n kho sáº£n pháº©m tÆ°Æ¡ng á»©ng
+INSERT INTO inventories(quantity, import_date, product_id) VALUES
+(20, '2026-05-01', 1),
+(15, '2026-05-01', 2),
+(10, '2026-05-01', 3),
+(8, '2026-05-01', 4),
+(5, '2026-05-01', 5);
+
+
+================================================================
+File: .mvn\wrapper\maven-wrapper.properties
+================================================================
+wrapperVersion=3.3.4
+distributionType=only-script
+distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.15/apache-maven-3.9.15-bin.zip
+
+
+================================================================
+File: src\main\java\com\example\qlgear\QlgearApplication.java
+================================================================
+package com.example.qlgear;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class QlgearApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(QlgearApplication.class, args);
+	}
+
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\controller\CartController.java
+================================================================
+package com.example.qlgear.controller;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.example.qlgear.entity.CartItem;
+import com.example.qlgear.entity.OrderEntity;
+import com.example.qlgear.entity.Payment;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.entity.User;
+import com.example.qlgear.repository.PaymentRepository;
+import com.example.qlgear.service.CartService;
+import com.example.qlgear.service.OrderService;
+import com.example.qlgear.service.ProductService;
+
+import jakarta.servlet.http.HttpSession;
+
+@Controller
+public class CartController {
+
+    private final CartService cartService;
+    private final ProductService productService;
+    private final OrderService orderService;
+    private final PaymentRepository paymentRepo;
+
+    public CartController(CartService cartService,
+                          ProductService productService,
+                          OrderService orderService,
+                          PaymentRepository paymentRepo) {
+        this.cartService = cartService;
+        this.productService = productService;
+        this.orderService = orderService;
+        this.paymentRepo = paymentRepo;
+    }
+
+    @GetMapping("/cart")
+    public String viewCart(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        List<CartItem> cartItems = cartService.getCartItems(user);
+        model.addAttribute("cartItems", cartItems);
+
+        double total = cartItems.stream()
+                .mapToDouble(item -> item.getQuantity() * item.getProduct().getPrice())
+                .sum();
+        model.addAttribute("total", total);
+
+        return "cart";
+    }
+
+    @PostMapping("/cart/add/{productId}")
+    public String addToCart(@PathVariable Long productId,
+                            @RequestParam(defaultValue = "1") int quantity,
+                            HttpSession session,
+                            RedirectAttributes redirectAttributes,
+                            @RequestHeader(value = "referer", required = false) String referer) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        Product product = productService.getProductById(productId);
+        try {
+            cartService.addToCart(user, product, quantity);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "ThĂªm vĂ o giá» hĂ ng tháº¥t báº¡i: " + e.getMessage());
+        }
+        
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/";
+    }
+
+    @PostMapping("/cart/update")
+    public String updateQuantity(@RequestParam Long cartItemId,
+                                 @RequestParam int quantity,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        try {
+            cartService.updateQuantity(cartItemId, quantity);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Cáº­p nháº­t sá»‘ lÆ°á»£ng tháº¥t báº¡i: " + e.getMessage());
+        }
+        return "redirect:/cart";
+    }
+
+    @GetMapping("/cart/delete/{id}")
+    public String deleteItem(@PathVariable Long id, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        cartService.removeFromCart(id);
+        return "redirect:/cart";
+    }
+
+    @PostMapping("/cart/checkout")
+    public String checkout(@RequestParam String paymentMethod,
+                           HttpSession session,
+                           RedirectAttributes redirectAttributes) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        try {
+            OrderEntity order = cartService.checkout(user, paymentMethod);
+            redirectAttributes.addAttribute("orderId", order.getId());
+            return "redirect:/cart/success";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Thanh toĂ¡n tháº¥t báº¡i: " + e.getMessage());
+            return "redirect:/cart";
+        }
+    }
+
+    @GetMapping("/cart/success")
+    public String checkoutSuccess(@RequestParam Long orderId,
+                                  HttpSession session,
+                                  Model model) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        OrderEntity order = orderService.getOrder_user(user).stream()
+                .filter(o -> o.getId().equals(orderId))
+                .findFirst()
+                .orElse(null);
+        if (order == null) {
+            return "redirect:/";
+        }
+        model.addAttribute("order", order);
+
+        Payment payment = paymentRepo.findByOrder(order).orElse(null);
+        model.addAttribute("payment", payment);
+
+        return "checkout-success";
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\controller\CategoryController.java
+================================================================
+package com.example.qlgear.controller;
+
+import com.example.qlgear.entity.Category;
+import com.example.qlgear.service.CategoryService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+
+@Controller
+public class CategoryController {
+    private final CategoryService service;
+    public CategoryController(CategoryService service){
+        this.service=service;
+    }
+    // list
+    @GetMapping("/categories")
+    public String list(Model model, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
+
+        model.addAttribute(
+                "categories",
+                service.getAllCategory()
+        );
+
+        return "categories";
+    }
+
+    // add form
+    @GetMapping("/categories/add")
+    public String add(Model model, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
+
+        model.addAttribute(
+                "category",
+                new Category()
+        );
+
+        return "add-category";
+    }
+
+    // save
+    @PostMapping("/categories/save")
+    public String save(
+            @ModelAttribute Category category,
+            HttpSession session
+    ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
+
+        service.addCate(category);
+
+        return "redirect:/categories";
+    }
+
+    // edit form
+    @GetMapping("/categories/edit/{id}")
+    public String edit(
+            @PathVariable Long id,
+            Model model,
+            HttpSession session
+    ) {
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
+
+        model.addAttribute(
+                "category",
+                service.get_Cate_id(id)
+        );
+
+        return "edit-category";
+    }
+
+    // update
+    @PostMapping("/categories/update/{id}")
+    public String update(
+            @PathVariable Long id,
+            @ModelAttribute Category category,
+            HttpSession session
+    ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
+        service.updateCate(category,id);
+        return "redirect:/categories";
+    }
+
+    // delete
+    @GetMapping("/categories/delete/{id}")
+    public String delete(
+            @PathVariable Long id,
+            HttpSession session
+    ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/categories";
+        service.delCate_id(id);
+        return "redirect:/categories";
+    }
+}
+
+
+
+================================================================
+File: src\main\java\com\example\qlgear\controller\GlobalControllerAdvice.java
+================================================================
+package com.example.qlgear.controller;
+
+import com.example.qlgear.entity.CartItem;
+import com.example.qlgear.entity.User;
+import com.example.qlgear.service.CartService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import java.util.List;
+
+@ControllerAdvice
+public class GlobalControllerAdvice {
+
+    private final CartService cartService;
+
+    public GlobalControllerAdvice(CartService cartService) {
+        this.cartService = cartService;
+    }
+
+    @ModelAttribute("cartCount")
+    public int getCartCount(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return 0;
+        }
+        List<CartItem> cartItems = cartService.getCartItems(user);
+        if (cartItems == null) {
+            return 0;
+        }
+        return cartItems.stream().mapToInt(CartItem::getQuantity).sum();
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\controller\InventoryController.java
+================================================================
+package com.example.qlgear.controller;
+
+import com.example.qlgear.entity.Inventory;
+import com.example.qlgear.service.InventoryService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+public class InventoryController {
+    private final InventoryService service;
+
+    public InventoryController(
+            InventoryService service
+    ) {
+        this.service = service;
+    }
+
+    @GetMapping("/inventory")
+    public String inventoryPage(
+            Model model,
+            HttpSession session
+    ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
+
+        model.addAttribute(
+                "inventories",
+                service.getAllInven()
+        );
+
+        return "inventory";
+    }
+
+    @GetMapping("/inventory/edit/{id}")
+    public String editInventory(
+            @PathVariable Long id,
+            Model model,
+            HttpSession session
+    ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
+
+        model.addAttribute(
+                "inventory",
+                service.getInventoryById(id)
+        );
+
+        return "edit-inventory";
+    }
+
+    @PostMapping("/inventory/update")
+    public String updateInventory(
+            @ModelAttribute Inventory inventory,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
+
+        try {
+            service.edit_Inven(inventory);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/inventory/edit/" + inventory.getId();
+        }
+        return "redirect:/inventory";
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\controller\LoginController.java
+================================================================
+package com.example.qlgear.controller;
+
+import com.example.qlgear.entity.User;
+import com.example.qlgear.repository.UserRepository;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Controller
+public class LoginController {
+    private final UserRepository repo;
+    public LoginController(UserRepository repo){
+        this.repo=repo;
+    }
+    //page login
+    @GetMapping("/login")
+    public String login(){
+        return "login";
+    }
+    //logic login
+    @PostMapping("/login")
+    public String login(@RequestParam String username,
+                        @RequestParam String password,
+                        HttpSession session){
+        User user=repo.findByUsernameAndPassword(username,password);
+        if(user!=null){
+            session.setAttribute("user",user);
+            session.setAttribute("role",user.getRole());
+            if ("ADMIN".equals(user.getRole()) || "STAFF".equals(user.getRole())) {
+                return "redirect:/home";
+            } else {
+                return "redirect:/";
+            }
+        }
+        return "redirect:/login";
+    }
+    //log out
+    @GetMapping("/logout")
+    public String logout(HttpSession session){
+        session.invalidate();
+        return "redirect:/login";
+    }
+
+    // page register
+    @GetMapping("/register")
+    public String register(){
+        return "register";
+    }
+
+    // logic register
+    @PostMapping("/register")
+    public String register(@ModelAttribute User user){
+        user.setRole("CUSTOMER"); // Máº·c Ä‘á»‹nh tĂ i khoáº£n Ä‘Äƒng kĂ½ má»›i lĂ  CUSTOMER
+        repo.save(user);
+        return "redirect:/login";
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\controller\OrderController.java
+================================================================
+package com.example.qlgear.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.example.qlgear.entity.User;
+import com.example.qlgear.service.OrderService;
+
+import jakarta.servlet.http.HttpSession;
+
+@Controller
+public class OrderController {
+    private final OrderService service;
+
+    public OrderController(
+            OrderService service
+    ) {
+        this.service = service;
+    }
+
+    @GetMapping("/my-orders")
+    public String myOrders(
+            HttpSession session,
+            Model model
+    ){
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute(
+                "orders",
+                service.getOrder_user(user)
+        );
+        return "my-orders";
+    }
+
+    // admin xem danh sĂ¡ch Ä‘Æ¡n hĂ ng
+    @GetMapping("/admin/orders")
+    public String adminOrders(Model model, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
+
+        model.addAttribute("orders", service.getAllOrders());
+        return "admin-orders";
+    }
+
+    //admin cáº­p nháº­t
+    @PostMapping("/admin/orders/update/{id}")
+    public String updateOrderStatus(@PathVariable Long id, @RequestParam String status, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
+
+        service.updateOrderStatus(id, status);
+        return "redirect:/admin/orders";
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\controller\ProductController.java
+================================================================
+package com.example.qlgear.controller;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.example.qlgear.entity.OrderEntity;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.entity.User;
+import com.example.qlgear.service.CategoryService;
+import com.example.qlgear.service.OrderService;
+import com.example.qlgear.service.ProductService;
+
+import jakarta.servlet.http.HttpSession;
+
+@Controller
+public class ProductController {
+    private final ProductService service;
+    private final CategoryService serviceCate;
+    private final OrderService serviceOrder;
+    public ProductController(OrderService serviceOrder,ProductService service,CategoryService serverCate){
+        this.service=service;
+        this.serviceCate=serverCate;
+        this.serviceOrder=serviceOrder;
+    }
+    @GetMapping("/home")
+    public String home(HttpSession session, Model model){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
+
+        long totalProducts = service.getAllProducts().size();
+        long totalCategories = serviceCate.getAllCategory().size();
+        List<OrderEntity> orders = serviceOrder.getAllOrders();
+        long totalOrders = orders.size();
+        
+        //doanh thu
+        double totalRevenue = orders.stream()
+                .filter(o -> "COMPLETED".equalsIgnoreCase(o.getStatus()))
+                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice().doubleValue() : 0.0)
+                .sum();
+
+        LocalDate today = LocalDate.now();
+        double revenueToday = orders.stream()
+                .filter(o -> "COMPLETED".equalsIgnoreCase(o.getStatus()))
+                .filter(o -> o.getOrderDate() != null && o.getOrderDate().toLocalDate().isEqual(today))
+                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice().doubleValue() : 0.0)
+                .sum();
+
+        // Tá»•ng sá»‘ lÆ°á»£ng sáº£n pháº©m Ä‘Ă£ bĂ¡n
+        long totalProductsSold = orders.stream()
+                .filter(o -> "COMPLETED".equalsIgnoreCase(o.getStatus()))
+                .flatMap(o -> o.getOrderItems().stream())
+                .mapToLong(oi -> oi.getQuantity() != null ? oi.getQuantity().longValue() : 0L)
+                .sum();
+
+        model.addAttribute("totalProducts", totalProducts);
+        model.addAttribute("totalCategories", totalCategories);
+        model.addAttribute("totalOrders", totalOrders);
+        model.addAttribute("totalRevenue", totalRevenue);
+        
+        model.addAttribute("revenueToday", revenueToday);
+        model.addAttribute("totalProductsSold", totalProductsSold);
+
+        return "home";
+    }
+    @GetMapping("/")
+    public String customerHome(
+            @RequestParam(name = "id", required = false) String id,
+            @RequestParam(name = "sort", required = false) String sort,
+            Model model){
+        Long selectedId = null;
+        if (id != null && !id.trim().isEmpty()) {
+            try {
+                selectedId = Long.valueOf(id);
+            } catch (NumberFormatException ignored) {}
+        }
+        model.addAttribute("products", service.getProducts(selectedId, sort));
+        model.addAttribute("categories", serviceCate.getAllCategory());
+        model.addAttribute("selectedCategoryId", selectedId);
+        model.addAttribute("selectedSort", sort);
+        return "kh_home";
+    }
+    //view list sp
+    @GetMapping("/products")
+    public String list(Model model, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role) && !"STAFF".equals(role)) return "redirect:/";
+        model.addAttribute("listsp",service.getAllProducts());
+        return "products";
+    }
+    //them sp
+    @GetMapping("/add")
+    public String add(Model model, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/products";
+        model.addAttribute("product",new Product());
+        model.addAttribute("categories", serviceCate.getAllCategory());
+        return "/add";
+    }
+    //helper lÆ°u áº£nh
+    private String saveImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+        try {
+            String fileName = Paths.get(file.getOriginalFilename()).getFileName().toString();
+
+            Path targetPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", "images", fileName);
+            Files.createDirectories(targetPath.getParent());
+            Files.write(targetPath, file.getBytes());
+
+            Path srcPath = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", "images", fileName);
+            Files.createDirectories(srcPath.getParent());
+            Files.write(srcPath, file.getBytes());
+
+            return fileName;
+        } catch (java.io.IOException e) {
+            System.err.println("Lá»—i lÆ°u áº£nh: " + e.getMessage());
+            return null;
+        }
+    }
+
+    //save sp
+    @PostMapping(value = "/add/save", consumes = "multipart/form-data")
+    public String savesp(@ModelAttribute Product product, @RequestParam("imageFile") MultipartFile imageFile, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/products";
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = saveImage(imageFile);
+            product.setImageUrl(fileName);
+        }
+        service.addProduct(product);
+        return "redirect:/products";
+    }
+    //edit form
+    @GetMapping("/edit/{id}")
+    public String edit(Model model, @PathVariable Long id, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/products";
+        model.addAttribute("sp",service.getProductById(id));
+        model.addAttribute("categories",serviceCate.getAllCategory());
+        return "edit-sp";
+    }
+    //update edit
+    @PostMapping(value = "/update/{id}", consumes = "multipart/form-data")
+    public String upd_sp(@ModelAttribute Product sp, @PathVariable Long id, @RequestParam("imageFile") MultipartFile imageFile, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/products";
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = saveImage(imageFile);
+            sp.setImageUrl(fileName);
+        } else {
+            // Giá»¯ láº¡i áº£nh cÅ© náº¿u khĂ´ng táº£i áº£nh má»›i lĂªn
+            Product oldProduct = service.getProductById(id);
+            sp.setImageUrl(oldProduct.getImageUrl());
+        }
+        service.updateProduct(id,sp);
+        return "redirect:/products";
+    }
+    //del
+    @GetMapping("/del/{id}")
+    public String del(@PathVariable Long id, HttpSession session){
+        String role = (String) session.getAttribute("role");
+        if (role == null) return "redirect:/login";
+        if (!"ADMIN".equals(role)) return "redirect:/products";
+        service.deleteProduct(id);
+        return "redirect:/products";
+    }
+    //buy pd
+    @GetMapping("/buy/{id}")
+    public String buy(
+            @PathVariable Long id,
+            HttpSession session, RedirectAttributes redirectAttributes) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        Product product = service.getProductById(id);
+        try {
+            serviceOrder.buy_SP(user, product);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "ÄĂ£ xĂ¡c nháº­n mua thĂ nh cĂ´ng: " + product.getProductName()
+            );
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    "Mua hĂ ng tháº¥t báº¡i: Sáº£n pháº©m " + product.getProductName() + " Ä‘Ă£ háº¿t hĂ ng hoáº·c khĂ´ng Ä‘á»§ tá»“n kho!"
+            );
+        }
+        return "redirect:/";
+    }
+    //tim kiem báº±ng tĂªn
+    @GetMapping("/find")
+    public String findName(@RequestParam("name") String name,Model model){
+        model.addAttribute("products",service.find_NameSP(name));
+        model.addAttribute("categories",serviceCate.getAllCategory());
+        return "kh_home";
+    }
+    @GetMapping("/shop/category")
+    public String filterCategory(
+            @RequestParam(name = "id", required = false) String id,
+            @RequestParam(name = "sort", required = false) String sort,
+            Model model) {
+        Long selectedId = null;
+        if (id != null && !id.trim().isEmpty()) {
+            try {
+                selectedId = Long.valueOf(id);
+            } catch (NumberFormatException ignored) {}
+        }
+        model.addAttribute("products", service.getProducts(selectedId, sort));
+        model.addAttribute("selectedCategoryId", selectedId);
+        model.addAttribute("selectedSort", sort);
+        model.addAttribute("categories", serviceCate.getAllCategory());
+        return "kh_home";
+    }
+    // xem chi tiáº¿t sáº£n pháº©m
+    @GetMapping("/product/{id}")
+    public String detail(@PathVariable Long id, Model model){
+        model.addAttribute("product", service.getProductById(id));
+        return "product-detail";
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\entity\CartItem.java
+================================================================
+package com.example.qlgear.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "cart_items")
+public class CartItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Integer quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    public CartItem() {
+    }
+
+    public CartItem(Long id, Integer quantity, User user, Product product) {
+        this.id = id;
+        this.quantity = quantity;
+        this.user = user;
+        this.product = product;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\entity\Category.java
+================================================================
+package com.example.qlgear.entity;
+
+import jakarta.persistence.*;
+
+import java.util.List;
+
+@Entity
+@Table(name = "categories")
+public class Category {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "category_name")
+    private String categoryName;
+
+    private String description;
+
+    @OneToMany(mappedBy = "category")
+    private List<Product> products;
+
+    public Category() {
+    }
+
+    public Category(Long id, String categoryName, String description, List<Product> products) {
+        this.id = id;
+        this.categoryName = categoryName;
+        this.description = description;
+        this.products = products;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
+
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\entity\Inventory.java
+================================================================
+package com.example.qlgear.entity;
+
+import jakarta.persistence.*;
+
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "inventories")
+public class Inventory {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Integer quantity;
+
+    @Column(name = "import_date")
+    private LocalDate importDate;
+
+    @OneToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    public Inventory() {
+    }
+
+    public Inventory(Long id, Integer quantity, LocalDate importDate, Product product) {
+        this.id = id;
+        this.quantity = quantity;
+        this.importDate = importDate;
+        this.product = product;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public LocalDate getImportDate() {
+        return importDate;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setImportDate(LocalDate importDate) {
+        this.importDate = importDate;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\entity\OrderEntity.java
+================================================================
+package com.example.qlgear.entity;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "orders")
+public class OrderEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "order_date")
+    private LocalDateTime orderDate;
+
+    @Column(name = "total_price")
+    private Double totalPrice;
+
+    private String status;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @OneToMany(mappedBy = "order")
+    private List<OrderItem> orderItems;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.EAGER)
+    private List<Payment> payments;
+
+    public OrderEntity() {
+    }
+
+    public OrderEntity(Long id, LocalDateTime orderDate, Double totalPrice, String status, User user, List<OrderItem> orderItems) {
+        this.id = id;
+        this.orderDate = orderDate;
+        this.totalPrice = totalPrice;
+        this.status = status;
+        this.user = user;
+        this.orderItems = orderItems;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public LocalDateTime getOrderDate() {
+        return orderDate;
+    }
+
+    public Double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public void setTotalPrice(Double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setOrderItems(List<OrderItem> orderItems) {
+        this.orderItems = orderItems;
+    }
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\entity\OrderItem.java
+================================================================
+package com.example.qlgear.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "order_items")
+public class OrderItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Integer quantity;
+
+    @Column(name = "unit_price")
+    private Double unitPrice;
+
+    private Double subtotal;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private OrderEntity order;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    public OrderItem() {
+    }
+
+    public OrderItem(Long id, Integer quantity, Double unitPrice, Double subtotal, OrderEntity order, Product product) {
+        this.id = id;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.subtotal = subtotal;
+        this.order = order;
+        this.product = product;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Double unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public Double getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(Double subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public OrderEntity getOrder() {
+        return order;
+    }
+
+    public void setOrder(OrderEntity order) {
+        this.order = order;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\entity\Payment.java
+================================================================
+package com.example.qlgear.entity;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "payments")
+public class Payment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "payment_date")
+    private LocalDateTime paymentDate;
+
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
+    private Double amount;
+    private String status;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private OrderEntity order;
+
+    public Payment() {
+    }
+
+    public Payment(Long id, LocalDateTime paymentDate, String paymentMethod, Double amount, String status, OrderEntity order) {
+        this.id = id;
+        this.paymentDate = paymentDate;
+        this.paymentMethod = paymentMethod;
+        this.amount = amount;
+        this.status = status;
+        this.order = order;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getPaymentDate() {
+        return paymentDate;
+    }
+
+    public void setPaymentDate(LocalDateTime paymentDate) {
+        this.paymentDate = paymentDate;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public OrderEntity getOrder() {
+        return order;
+    }
+
+    public void setOrder(OrderEntity order) {
+        this.order = order;
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\entity\Product.java
+================================================================
+package com.example.qlgear.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "products")
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "product_name")
+    private String productName;
+
+    private String brand;
+    private String description;
+    private Double price;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    private String status;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    public Product() {
+    }
+
+    public Product(Long id, String productName, String brand, String description, Double price, String imageUrl, String status, Category category) {
+        this.id = id;
+        this.productName = productName;
+        this.brand = brand;
+        this.description = description;
+        this.price = price;
+        this.imageUrl = imageUrl;
+        this.status = status;
+        this.category = category;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\entity\User.java
+================================================================
+package com.example.qlgear.entity;
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
+public class User {
+    @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "username",unique = true,nullable = false)
+    private String username;
+
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @Column(name = "full_name")
+    private String fullName;
+
+    private String email;
+    private String phone;
+    private String role;
+
+    public User() {
+    }
+
+    public User(Long id, String username, String password, String fullName, String email, String phone, String role) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.fullName = fullName;
+        this.email = email;
+        this.phone = phone;
+        this.role = role;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\repository\CartItemRepository.java
+================================================================
+package com.example.qlgear.repository;
+
+import com.example.qlgear.entity.CartItem;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface CartItemRepository extends JpaRepository<CartItem, Long> {
+    List<CartItem> findByUser(User user);
+    Optional<CartItem> findByUserAndProduct(User user, Product product);
+    void deleteByUser(User user);
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\repository\CategoryRepository.java
+================================================================
+package com.example.qlgear.repository;
+
+import com.example.qlgear.entity.Category;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CategoryRepository extends JpaRepository<Category,Long> {
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\repository\InventoryRepository.java
+================================================================
+package com.example.qlgear.repository;
+
+import com.example.qlgear.entity.Inventory;
+import com.example.qlgear.entity.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
+
+public interface InventoryRepository extends JpaRepository<Inventory,Long> {
+    Optional<Inventory> findByProduct(Product product);
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\repository\OrderItemRepository.java
+================================================================
+package com.example.qlgear.repository;
+
+import com.example.qlgear.entity.OrderItem;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrderItemRepository extends JpaRepository<OrderItem,Long> {
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\repository\OrderRepository.java
+================================================================
+package com.example.qlgear.repository;
+
+import com.example.qlgear.entity.OrderEntity;
+import com.example.qlgear.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
+    List<OrderEntity> findByUser(User user);
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\repository\PaymentRepository.java
+================================================================
+package com.example.qlgear.repository;
+
+import com.example.qlgear.entity.OrderEntity;
+import com.example.qlgear.entity.Payment;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface PaymentRepository extends JpaRepository<Payment, Long> {
+    Optional<Payment> findByOrder(OrderEntity order);
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\repository\ProductRepository.java
+================================================================
+package com.example.qlgear.repository;
+
+import com.example.qlgear.entity.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface ProductRepository extends JpaRepository<Product,Long> {
+    List<Product> findByProductNameContainingIgnoreCase(String name);
+    List<Product> findByCategoryId(Long id);
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\repository\UserRepository.java
+================================================================
+package com.example.qlgear.repository;
+
+import com.example.qlgear.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User,Long> {
+    User findByUsernameAndPassword(String username,String password);
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\service\CartService.java
+================================================================
+package com.example.qlgear.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.qlgear.entity.CartItem;
+import com.example.qlgear.entity.Inventory;
+import com.example.qlgear.entity.OrderEntity;
+import com.example.qlgear.entity.OrderItem;
+import com.example.qlgear.entity.Payment;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.entity.User;
+import com.example.qlgear.repository.CartItemRepository;
+import com.example.qlgear.repository.InventoryRepository;
+import com.example.qlgear.repository.OrderItemRepository;
+import com.example.qlgear.repository.OrderRepository;
+import com.example.qlgear.repository.PaymentRepository;
+
+@Service
+@Transactional
+public class CartService {
+
+    private final CartItemRepository cartItemRepo;
+    private final OrderRepository orderRepo;
+    private final OrderItemRepository orderItemRepo;
+    private final PaymentRepository paymentRepo;
+    private final InventoryRepository inventoryRepo;
+
+    public CartService(CartItemRepository cartItemRepo,
+                       OrderRepository orderRepo,
+                       OrderItemRepository orderItemRepo,
+                       PaymentRepository paymentRepo,
+                       InventoryRepository inventoryRepo) {
+        this.cartItemRepo = cartItemRepo;
+        this.orderRepo = orderRepo;
+        this.orderItemRepo = orderItemRepo;
+        this.paymentRepo = paymentRepo;
+        this.inventoryRepo = inventoryRepo;
+    }
+
+    public List<CartItem> getCartItems(User user) {
+        return cartItemRepo.findByUser(user);
+    }
+
+    public void addToCart(User user, Product product, int quantity) {
+        Inventory inventory = inventoryRepo.findByProduct(product)
+                .orElseThrow(() -> new RuntimeException("Sáº£n pháº©m khĂ´ng cĂ³ thĂ´ng tin tá»“n kho!"));
+        
+        Optional<CartItem> existingItemOpt = cartItemRepo.findByUserAndProduct(user, product);
+        int currentCartQuantity = existingItemOpt.map(CartItem::getQuantity).orElse(0);
+        int requestedQuantity = currentCartQuantity + quantity;
+
+        if (requestedQuantity > inventory.getQuantity()) {
+            throw new RuntimeException("Sá»‘ lÆ°á»£ng sáº£n pháº©m trong giá» hĂ ng vÆ°á»£t quĂ¡ sá»‘ lÆ°á»£ng tá»“n kho hiá»‡n táº¡i (" + inventory.getQuantity() + ")!");
+        }
+
+        if (existingItemOpt.isPresent()) {
+            CartItem existingItem = existingItemOpt.get();
+            existingItem.setQuantity(requestedQuantity);
+            cartItemRepo.save(existingItem);
+        } else {
+            CartItem newItem = new CartItem();
+            newItem.setUser(user);
+            newItem.setProduct(product);
+            newItem.setQuantity(quantity);
+            cartItemRepo.save(newItem);
+        }
+    }
+
+    public void updateQuantity(Long cartItemId, int quantity) {
+        CartItem item = cartItemRepo.findById(cartItemId).orElse(null);
+        if (item != null) {
+            if (quantity > 0) {
+                Inventory inventory = inventoryRepo.findByProduct(item.getProduct())
+                        .orElseThrow(() -> new RuntimeException("Sáº£n pháº©m khĂ´ng cĂ³ thĂ´ng tin tá»“n kho!"));
+                if (quantity > inventory.getQuantity()) {
+                    throw new RuntimeException("Sá»‘ lÆ°á»£ng sáº£n pháº©m trong giá» hĂ ng vÆ°á»£t quĂ¡ sá»‘ lÆ°á»£ng tá»“n kho hiá»‡n táº¡i (" + inventory.getQuantity() + ")!");
+                }
+                item.setQuantity(quantity);
+                cartItemRepo.save(item);
+            } else {
+                cartItemRepo.delete(item);
+            }
+        }
+    }
+
+    public void removeFromCart(Long cartItemId) {
+        cartItemRepo.deleteById(cartItemId);
+    }
+
+    public OrderEntity checkout(User user, String paymentMethod) {
+        List<CartItem> cartItems = cartItemRepo.findByUser(user);
+        if (cartItems.isEmpty()) {
+            throw new RuntimeException("Giá» hĂ ng cá»§a báº¡n Ä‘ang trá»‘ng!");
+        }
+
+        // Kiá»ƒm tra tá»“n kho cá»§a táº¥t cáº£ sáº£n pháº©m trong giá» hĂ ng trÆ°á»›c khi táº¡o Ä‘Æ¡n hĂ ng
+        for (CartItem cartItem : cartItems) {
+            Product product = cartItem.getProduct();
+            Inventory inventory = inventoryRepo.findByProduct(product)
+                    .orElseThrow(() -> new RuntimeException("Sáº£n pháº©m '" + product.getProductName() + "' khĂ´ng cĂ³ thĂ´ng tin tá»“n kho!"));
+            if (inventory.getQuantity() < cartItem.getQuantity()) {
+                throw new RuntimeException("Sáº£n pháº©m '" + product.getProductName() + "' khĂ´ng Ä‘á»§ hĂ ng trong kho!");
+            }
+        }
+
+        // 1. Táº¡o Ä‘Æ¡n hĂ ng má»›i
+        OrderEntity order = new OrderEntity();
+        order.setOrderDate(LocalDateTime.now());
+        order.setStatus("PENDING");
+        order.setUser(user);
+        order.setTotalPrice(0.0); // Sáº½ Ä‘Æ°á»£c tá»± Ä‘á»™ng cáº­p nháº­t bá»Ÿi Trigger DB
+        OrderEntity savedOrder = orderRepo.save(order);
+
+        double totalAmount = 0.0;
+
+        // 2. Chuyá»ƒn chi tiáº¿t giá» hĂ ng thĂ nh chi tiáº¿t Ä‘Æ¡n hĂ ng
+        for (CartItem cartItem : cartItems) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(savedOrder);
+            orderItem.setProduct(cartItem.getProduct());
+            orderItem.setQuantity(cartItem.getQuantity());
+            orderItem.setUnitPrice(cartItem.getProduct().getPrice());
+            orderItem.setSubtotal(cartItem.getQuantity() * cartItem.getProduct().getPrice());
+            
+            totalAmount += orderItem.getSubtotal();
+            
+            // LÆ°u order item (Trigger trg_check_inventory vĂ  trg_reduce_inventory sáº½ tá»± Ä‘á»™ng cháº¡y táº¡i Ä‘Ă¢y)
+            orderItemRepo.save(orderItem);
+        }
+
+        // 3. Táº¡o thĂ´ng tin thanh toĂ¡n
+        Payment payment = new Payment();
+        payment.setOrder(savedOrder);
+        payment.setPaymentDate(LocalDateTime.now());
+        payment.setPaymentMethod(paymentMethod);
+        payment.setAmount(totalAmount);
+        payment.setStatus("COD".equalsIgnoreCase(paymentMethod) ? "PENDING" : "COMPLETED");
+        paymentRepo.save(payment);
+
+        // 4. XĂ³a sáº¡ch giá» hĂ ng cá»§a ngÆ°á»i dĂ¹ng
+        cartItemRepo.deleteByUser(user);
+
+        return savedOrder;
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\service\CategoryService.java
+================================================================
+package com.example.qlgear.service;
+
+import com.example.qlgear.entity.Category;
+import com.example.qlgear.repository.CategoryRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class CategoryService {
+    private final CategoryRepository repo;
+    public CategoryService(CategoryRepository repo){
+        this.repo=repo;
+    }
+    //get all
+    public List<Category> getAllCategory(){
+        return repo.findAll();
+    }
+    //add
+    public void addCate(Category ca){
+        repo.save(ca);
+    }
+    //get id
+    public Category get_Cate_id(Long id){
+        return repo.findById(id).orElse(null);
+    }
+    //update
+    public void updateCate(Category ca,Long id){
+        Category c =repo.findById(id).orElse(null);
+        if(c!=null){
+            c.setCategoryName(ca.getCategoryName());
+            c.setDescription(ca.getDescription());
+            repo.save(c);
+        }
+    }
+    //dele
+    public void delCate_id(Long id){
+        repo.deleteById(id);
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\service\InventoryService.java
+================================================================
+package com.example.qlgear.service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.qlgear.entity.Inventory;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.repository.InventoryRepository;
+import com.example.qlgear.repository.ProductRepository;
+
+@Service
+@Transactional
+public class InventoryService {
+    private final InventoryRepository repo;
+    private final ProductRepository productRepo;
+
+    public InventoryService(
+            InventoryRepository repo,
+            ProductRepository productRepo
+    ) {
+        this.repo = repo;
+        this.productRepo = productRepo;
+    }
+    ///list
+    public List<Inventory> getAllInven(){
+        return repo.findAll();
+    }
+
+    public Inventory
+    getInventoryById(Long id){
+        return repo.findById(id).orElse(null);
+    }
+    //edit
+    public void edit_Inven(Inventory inventory){
+        if (inventory.getQuantity() != null && inventory.getQuantity() < 0) {
+            throw new IllegalArgumentException("Sá»‘ lÆ°á»£ng pháº£i lá»›n hÆ¡n 0!");
+        }
+        Inventory i=repo.findById(inventory.getId()).orElse(null);
+        if (i != null) {
+            i.setQuantity(inventory.getQuantity());
+            i.setImportDate(LocalDate.now());
+            
+            Product product = i.getProduct();
+            if (product != null) {
+                if (inventory.getQuantity() != null && inventory.getQuantity() <= 0) {
+                    product.setStatus("OUT_OF_STOCK");
+                } else {
+                    product.setStatus("AVAILABLE");
+                }
+                productRepo.save(product);
+            }
+            repo.save(i);
+        }
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\service\OrderService.java
+================================================================
+package com.example.qlgear.service;
+
+import com.example.qlgear.entity.OrderEntity;
+import com.example.qlgear.entity.OrderItem;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.entity.User;
+import com.example.qlgear.repository.OrderItemRepository;
+import com.example.qlgear.repository.OrderRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class OrderService {
+    private final OrderRepository repoO;
+    private final OrderItemRepository repoOI;
+    public OrderService(OrderRepository repoO,OrderItemRepository repoOI){
+        this.repoO=repoO;
+        this.repoOI=repoOI;
+    }
+    //mua
+    public void buy_SP(User user, Product pr){
+        OrderEntity order = new OrderEntity();
+        order.setOrderDate(LocalDateTime.now());
+        order.setStatus("COMPLETED");
+        order.setTotalPrice(pr.getPrice());
+        order.setUser(user);
+        repoO.save(order);
+
+        OrderItem oi=new OrderItem();
+        oi.setOrder(order);
+        oi.setProduct(pr);
+        oi.setQuantity(1);
+        oi.setSubtotal(pr.getPrice());
+        oi.setUnitPrice(pr.getPrice());
+        repoOI.save(oi);
+    }
+    //ds order
+    public List<OrderEntity> getOrder_user(User user){
+        return repoO.findByUser(user);
+    }
+
+    // Láº¥y táº¥t cáº£ Ä‘Æ¡n hĂ ng (cho Admin)
+    public List<OrderEntity> getAllOrders() {
+        return repoO.findAll();
+    }
+
+    // Cáº­p nháº­t tráº¡ng thĂ¡i Ä‘Æ¡n hĂ ng (cho Admin)
+    public void updateOrderStatus(Long orderId, String status) {
+        OrderEntity order = repoO.findById(orderId).orElse(null);
+        if (order != null) {
+            order.setStatus(status);
+            repoO.save(order);
+        }
+    }
+}
+
+
+================================================================
+File: src\main\java\com\example\qlgear\service\ProductService.java
+================================================================
+package com.example.qlgear.service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.example.qlgear.entity.Category;
+import com.example.qlgear.entity.Inventory;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.repository.CategoryRepository;
+import com.example.qlgear.repository.InventoryRepository;
+import com.example.qlgear.repository.ProductRepository;
+
+@Service
+public class ProductService {
+    private final ProductRepository repo;
+    private final CategoryRepository repoCate;
+    private final InventoryRepository repoInven;
+
+    public ProductService(ProductRepository repo, CategoryRepository repoCate, InventoryRepository repoInven){
+        this.repo=repo;
+        this.repoCate=repoCate;
+        this.repoInven=repoInven;
+    }
+    //get all
+    public List<Product> getAllProducts() {
+        return repo.findAll();
+    }
+
+    // láº¥y sáº£n pháº©m theo id
+    public Product getProductById(Long id) {
+
+        return repo.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Product not found"
+                        ));
+    }
+
+    // thĂªm sáº£n pháº©m
+    public void addProduct(Product product) {
+        Category cat=repoCate.findById(product.getCategory().getId()).orElse(null);
+        product.setCategory(cat);
+        // Do sá»‘ lÆ°á»£ng tá»“n kho ban Ä‘áº§u khi táº¡o má»›i luĂ´n báº±ng 0, nĂªn tráº¡ng thĂ¡i máº·c Ä‘á»‹nh pháº£i lĂ  OUT_OF_STOCK
+        product.setStatus("OUT_OF_STOCK");
+        Product savedProduct = repo.save(product);
+
+        Inventory inven = new Inventory();
+        inven.setProduct(savedProduct);
+        inven.setQuantity(0);
+        inven.setImportDate(LocalDate.now());
+        repoInven.save(inven);
+    }
+
+    // cáº­p nháº­t sáº£n pháº©m
+    public void updateProduct(Long id, Product newProduct) {
+
+        Product oldProduct = getProductById(id);
+
+        oldProduct.setProductName(newProduct.getProductName());
+        oldProduct.setBrand(newProduct.getBrand());
+        oldProduct.setDescription(newProduct.getDescription());
+        oldProduct.setPrice(newProduct.getPrice());
+        oldProduct.setImageUrl(newProduct.getImageUrl());
+        oldProduct.setStatus(newProduct.getStatus());
+        Category ca=repoCate.findById(newProduct.getCategory().getId()).orElse(null);
+        oldProduct.setCategory(ca);
+
+        repo.save(oldProduct);
+    }
+
+    // xĂ³a sáº£n pháº©m
+    public void deleteProduct(Long id) {
+
+        Product product = getProductById(id);
+
+        repo.delete(product);
+    }
+    //tĂ¬m kiáº¿m báº±ng name
+    public List<Product> find_NameSP(String name){
+        return repo.findByProductNameContainingIgnoreCase(name);
+    }
+    //lá»c theo category
+    public List<Product> find_byCate(Long id){
+        return repo.findByCategoryId(id);
+    }
+
+    // Lá»c theo category vĂ  sáº¯p xáº¿p theo giĂ¡/ngáº«u nhiĂªn
+    public List<Product> getProducts(Long categoryId, String sort) {
+        List<Product> products;
+        if (categoryId == null) {
+            products = new java.util.ArrayList<>(repo.findAll());
+        } else {
+            products = new java.util.ArrayList<>(repo.findByCategoryId(categoryId));
+        }
+
+        if ("priceAsc".equals(sort)) {
+            products.sort((p1, p2) -> Double.compare(p1.getPrice(), p2.getPrice()));
+        } else if ("priceDesc".equals(sort)) {
+            products.sort((p1, p2) -> Double.compare(p2.getPrice(), p1.getPrice()));
+        } else {
+            java.util.Collections.shuffle(products);
+        }
+        return products;
+    }
+
+}
+
+
+
+================================================================
+File: src\main\resources\application.properties
+================================================================
+spring.application.name=qlgear
+spring.datasource.url=jdbc:mysql://localhost:3306/ql_gear_computer
+spring.datasource.username=adminien
+spring.datasource.password=123123
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+server.port=8081
+spring.thymeleaf.cache=false
+
+
+================================================================
+File: src\main\resources\templates\add-category.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <title>Add Category</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="card p-4">
+            <h2 class="mb-4">Add Category</h2>
+
+            <form th:action="@{/categories/save}" method="post" th:object="${category}">
+                <div class="mb-3">
+                    <label>
+                        Category Name
+                    </label>
+                    <input type="text" class="form-control" th:field="*{categoryName}">
+                </div>
+
+                <div class="mb-3">
+                    <label>
+                        Description
+                    </label>
+                    <textarea class="form-control" th:field="*{description}">
+
+                </textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Save Category</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\add.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Add Product</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+
+    <div class="container mt-5">
+
+        <div class="card p-4">
+            <h2 class="mb-4">Add Product</h2>
+            <form th:action="@{/add/save}" method="post" th:object="${product}" enctype="multipart/form-data">
+
+                <div class="mb-3">
+                    <label>Product Name</label>
+                    <input type="text" class="form-control" th:field="*{productName}">
+                </div>
+
+                <div class="mb-3">
+                    <label>Brand</label>
+                    <input type="text" class="form-control" th:field="*{brand}">
+                </div>
+
+                <div class="mb-3">
+                    <label>Description</label>
+                    <textarea class="form-control" th:field="*{description}">
+                </textarea>
+
+                </div>
+
+                <div class="mb-3">
+                    <label>Price</label>
+                    <input type="number" class="form-control" th:field="*{price}">
+                </div>
+                <div class="mb-3">
+                    <label> Category </label>
+                    <select class="form-select" th:field="*{category}">
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.categoryName}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Product Image</label>
+                    <input type="file" name="imageFile" class="form-control" accept="image/*">
+                </div>
+
+                <div class="mb-3">
+                    <label>Status</label>
+                    <select class="form-select" th:field="*{status}">
+                        <option value="AVAILABLE">CĂ²n hĂ ng</option>
+                        <option value="OUT_OF_STOCK">Háº¿t hĂ ng</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success ms-1">ThĂªm sáº£n pháº©m</button>
+
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\admin-orders.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quáº£n LĂ½ ÄÆ¡n HĂ ng - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: #1a1d20 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-responsive {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary fw-bold" href="/home">Gear Computer</a>
+            <div class="d-flex">
+                <span class="text-white me-3" th:if="${session.user != null}">
+                    Welcome, <span th:text="${session.user.fullName}">Admin</span>
+                </span>
+                <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark"><i class="bi bi-receipt text-primary me-2"></i>Quáº£n LĂ½ ÄÆ¡n HĂ ng</h2>
+                <p class="text-muted">Danh sĂ¡ch táº¥t cáº£ cĂ¡c Ä‘Æ¡n hĂ ng cá»§a khĂ¡ch hĂ ng trĂªn há»‡ thá»‘ng</p>
+            </div>
+            <a href="/home" class="btn btn-secondary rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay láº¡i Dashboard
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">MĂ£ ÄÆ¡n HĂ ng</th>
+                                <th>NgĂ y Äáº·t</th>
+                                <th>KhĂ¡ch HĂ ng</th>
+                                <th>Tá»•ng GiĂ¡ Trá»‹</th>
+                                <th>Thanh ToĂ¡n</th>
+                                <th>Tráº¡ng ThĂ¡i</th>
+                                <th class="text-end pe-3">HĂ nh Äá»™ng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="o : ${orders}">
+                                <td class="ps-3 fw-bold" th:text="'#' + ${o.id}"></td>
+                                <td th:text="${#temporals.format(o.orderDate, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td>
+                                    <div th:if="${o.user != null}">
+                                        <strong th:text="${o.user.fullName}"></strong>
+                                        <div class="text-muted small" th:text="${o.user.phone}"></div>
+                                    </div>
+                                    <span th:if="${o.user == null}" class="text-muted">áº¨n danh</span>
+                                </td>
+                                <td class="text-danger fw-semibold"
+                                    th:text="${#numbers.formatDecimal(o.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                                </td>
+                                <td>
+                                    <div th:each="pay : ${o.payments}">
+                                        <span class="badge bg-secondary" th:text="${pay.paymentMethod}"></span>
+                                        <span class="badge bg-success" th:if="${pay.status == 'COMPLETED'}">ÄĂ£ thanh
+                                            toĂ¡n</span>
+                                        <span class="badge bg-warning text-dark" th:if="${pay.status == 'PENDING'}">ChÆ°a
+                                            thanh toĂ¡n</span>
+                                    </div>
+                                </td>
+                                <td>
+
+                                    <span th:if="${o.status == 'COMPLETED'}"
+                                        class="status-badge bg-success text-white">COMPLETED</span>
+                                    <span th:if="${o.status == 'PENDING'}"
+                                        class="status-badge bg-warning text-dark">PENDING</span>
+                                    <span th:if="${o.status == 'SHIPPING'}"
+                                        class="status-badge bg-info text-dark">SHIPPING</span>
+                                    <span th:if="${o.status == 'CANCELLED'}"
+                                        class="status-badge bg-danger text-white">CANCELLED</span>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <form th:action="@{/admin/orders/update/{id}(id=${o.id})}" method="post"
+                                        class="d-inline-flex gap-2">
+                                        <select name="status" class="form-select form-select-sm" style="width: auto;">
+                                            <option value="PENDING" th:selected="${o.status == 'PENDING'}">PENDING
+                                            </option>
+                                            <option value="SHIPPING" th:selected="${o.status == 'SHIPPING'}">SHIPPING
+                                            </option>
+                                            <option value="COMPLETED" th:selected="${o.status == 'COMPLETED'}">COMPLETED
+                                            </option>
+                                            <option value="CANCELLED" th:selected="${o.status == 'CANCELLED'}">CANCELLED
+                                            </option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primary">Cáº­p nháº­t</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(orders)}">
+                                <td colspan="7" class="text-center py-5 text-muted">ChÆ°a cĂ³ Ä‘Æ¡n hĂ ng nĂ o trong há»‡ thá»‘ng.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\cart.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Giá» HĂ ng - Gear Shop</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Giá» HĂ ng Cá»§a Báº¡n</h2>
+            <a href="/" class="btn btn-secondary">Quay láº¡i Trang Chá»§</a>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card p-3 shadow-sm border-0">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sáº£n pháº©m</th>
+                                <th>GiĂ¡</th>
+                                <th>Sá»‘ lÆ°á»£ng</th>
+                                <th>Tá»•ng cá»™ng</th>
+                                <th>HĂ nh Ä‘á»™ng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${cartItems}">
+                                <td th:text="${item.product.productName}"></td>
+                                <td
+                                    th:text="${#numbers.formatDecimal(item.product.price, 0, 'COMMA', 0, 'POINT')} + ' Ä‘'">
+                                </td>
+                                <td>
+                                    <form th:action="@{/cart/update}" method="post"
+                                        class="d-inline-flex align-items-center">
+                                        <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                        <input type="number" name="quantity" th:value="${item.quantity}" min="1"
+                                            class="form-control form-control-sm me-1" style="width: 70px;">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Sá»­a</button>
+                                    </form>
+                                </td>
+                                <td
+                                    th:text="${#numbers.formatDecimal(item.quantity * item.product.price, 0, 'COMMA', 0, 'POINT')} + ' Ä‘'">
+                                </td>
+                                <td>
+                                    <a th:href="@{/cart/delete/{id}(id=${item.id})}"
+                                        class="btn btn-sm btn-danger">XĂ³a</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(cartItems)}">
+                                <td colspan="5" class="text-center py-4 text-muted">Giá» hĂ ng cá»§a báº¡n Ä‘ang trá»‘ng.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-4" th:if="${!#lists.isEmpty(cartItems)}">
+                <div class="card p-4 shadow-sm border-0">
+                    <h4 class="fw-bold">Tá»•ng thanh toĂ¡n</h4>
+                    <h3 class="text-danger my-3"
+                        th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + ' Ä‘'"></h3>
+
+                    <form th:action="@{/cart/checkout}" method="post">
+                        <label class="form-label fw-bold">Chá»n phÆ°Æ¡ng thá»©c thanh toĂ¡n:</label>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD"
+                                    checked>
+                                <label class="form-check-label" for="cod">Thanh toĂ¡n khi nháº­n hĂ ng (COD)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="bank"
+                                    value="BANK_TRANSFER">
+                                <label class="form-check-label" for="bank">Chuyá»ƒn khoáº£n ngĂ¢n hĂ ng</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Äáº·t HĂ ng</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\categories.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <title>Categories</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between mb-3 align-items-center">
+            <h2>Category Management</h2>
+            <div>
+                <a href="/home" class="btn btn-secondary me-2">Back to Dashboard</a>
+                <a th:if="${session.role=='ADMIN'}" href="/categories/add" class="btn btn-primary">Add Category</a>
+            </div>
+        </div>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Action</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="c : ${categories}">
+                    <td th:text="${c.id}"></td>
+                    <td th:text="${c.categoryName}"></td>
+                    <td th:text="${c.description}"></td>
+                    <td>
+                        <a th:if="${session.role=='ADMIN'}" th:href="@{/categories/edit/{id}(id=${c.id})}"
+                            class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+                        <a th:if="${session.role=='ADMIN'}" th:href="@{/categories/delete/{id}(id=${c.id})}"
+                            class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\checkout-success.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Äáº·t HĂ ng ThĂ nh CĂ´ng - Gear Shop</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            width: 500px;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #198754;
+            margin-bottom: 1.5rem;
+        }
+
+        .order-info {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+            border-top: 1px dashed #dee2e6;
+            padding-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="bi bi-patch-check-fill"></i>
+        </div>
+
+        <h2 class="fw-bold text-dark mb-2">Äáº·t HĂ ng ThĂ nh CĂ´ng!</h2>
+        <p class="text-muted">Cáº£m Æ¡n báº¡n Ä‘Ă£ tin tÆ°á»Ÿng mua sáº¯m táº¡i Gear Shop. ÄÆ¡n hĂ ng cá»§a báº¡n Ä‘ang Ä‘Æ°á»£c xá»­ lĂ½.</p>
+
+        <div class="order-info">
+            <div class="info-row">
+                <span class="text-muted">MĂ£ Ä‘Æ¡n hĂ ng:</span>
+                <strong class="text-dark" th:text="'#' + ${order.id}"></strong>
+            </div>
+            <div class="info-row">
+                <span class="text-muted">NgĂ y Ä‘áº·t:</span>
+                <span class="fw-semibold text-dark"
+                    th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}"></span>
+            </div>
+            <div class="info-row">
+                <span class="text-muted">PhÆ°Æ¡ng thá»©c thanh toĂ¡n:</span>
+                <span class="fw-semibold text-dark"
+                    th:text="${payment != null ? payment.paymentMethod : 'ChÆ°a rĂµ'}"></span>
+            </div>
+            <div class="info-row">
+                <span class="text-muted">Tráº¡ng thĂ¡i thanh toĂ¡n:</span>
+                <span class="badge bg-success" th:if="${payment != null && payment.status == 'COMPLETED'}">ÄĂ£ thanh
+                    toĂ¡n</span>
+                <span class="badge bg-warning text-dark" th:if="${payment != null && payment.status == 'PENDING'}">ChÆ°a
+                    thanh toĂ¡n</span>
+            </div>
+            <div class="info-row">
+                <span class="text-dark fw-bold">Tá»•ng thanh toĂ¡n:</span>
+                <strong class="text-danger fs-5"
+                    th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' Ä‘'"></strong>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+            <a href="/" class="btn btn-primary rounded-pill py-2 fw-semibold">
+                <i class="bi bi-shop me-1"></i> Tiáº¿p tá»¥c mua sáº¯m
+            </a>
+            <a href="/my-orders" class="btn btn-outline-secondary rounded-pill py-2 fw-semibold">
+                <i class="bi bi-clock-history me-1"></i> Xem lá»‹ch sá»­ mua hĂ ng
+            </a>
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\edit-category.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <title>Edit Category</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+
+    <div class="container mt-5">
+        <div class="card p-4">
+            <h2 class="mb-4">Edit Category</h2>
+            <form th:action="@{/categories/update/{id}(id=${category.id})}" method="post" th:object="${category}">
+                <div class="mb-3">
+                    <label>Category Name</label>
+                    <input type="text" class="form-control" th:field="*{categoryName}">
+                </div>
+
+                <div class="mb-3">
+                    <label> Description</label>
+
+                    <textarea class="form-control" th:field="*{description}">
+                </textarea>
+
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Update Category
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\edit-inventory.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Edit Inventory</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="card p-4">
+            <h2 class="mb-4">Edit Inventory</h2>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <form th:action="@{/inventory/update}" method="post" th:object="${inventory}">
+                <input type="hidden" th:field="*{id}">
+                <div class="mb-3">
+                    <label>Quantity</label>
+                    <input type="number" class="form-control" th:field="*{quantity}" min="0" required>
+                </div>
+                <button class="btn btn-primary">Update</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\edit-sp.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <title>Edit Product</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="card p-4">
+            <h2 class="mb-4">
+                Edit Product
+            </h2>
+            <form th:action="@{/update/{id}(id=${sp.id})}" method="post" th:object="${sp}"
+                enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label>Product Name</label>
+                    <input type="text" class="form-control" th:field="*{productName}">
+                </div>
+                <div class="mb-3">
+                    <label>Brand</label>
+                    <input type="text" class="form-control" th:field="*{brand}">
+                </div>
+
+                <div class="mb-3">
+                    <label>Description</label>
+                    <textarea class="form-control" th:field="*{description}">
+                </textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label>Price</label>
+                    <input type="number" class="form-control" th:field="*{price}">
+                </div>
+                <div class="mb-3">
+                    <label>Category</label>
+                    <select class="form-select" th:field="*{category}">
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.categoryName}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Product Image (Chá»n áº£nh má»›i Ä‘á»ƒ thay Ä‘á»•i)</label>
+                    <input type="file" name="imageFile" class="form-control" accept="image/*">
+                </div>
+
+                <div class="mb-3">
+                    <label>Status</label>
+                    <select class="form-select" th:field="*{status}">
+                        <option value="AVAILABLE">CĂ²n hĂ ng (AVAILABLE)</option>
+                        <option value="OUT_OF_STOCK">Háº¿t hĂ ng (OUT_OF_STOCK)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Product</button>
+
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\home.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <title>Gear Shop - Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/home">Gear Computer</a>
+            <div class="d-flex align-items-center">
+                <a href="/" class="btn btn-primary btn-sm me-3">Go to Shop</a>
+                <span class="text-white me-3">
+                    Welcome,
+                    <span th:text="${session.user.fullName}">
+                    </span>
+                </span>
+                <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <div class="text-center mb-5">
+            <h1 class="text-primary fw-bold">
+                Gear Computer Management
+            </h1>
+            <h5>Role:<span class="badge bg-success" th:text="${session.role}"></span>
+            </h5>
+        </div>
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card bg-danger text-white shadow border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.8;">Doanh Thu HĂ´m
+                                    Nay</h6>
+                                <h3 class="mb-0 fw-bold" style="font-size: 1.4rem;"><span
+                                        th:text="${#numbers.formatDecimal(revenueToday, 0, 'COMMA', 0, 'POINT')}">0</span>
+                                    <span class="fs-6">Ä‘</span>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white shadow border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.8;">Tá»•ng Doanh Thu
+                                </h6>
+                                <h3 class="mb-0 fw-bold" style="font-size: 1.4rem;"><span
+                                        th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')}">0</span>
+                                    <span class="fs-6">Ä‘</span>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark shadow border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.8;">Sáº£n Pháº©m ÄĂ£
+                                    BĂ¡n</h6>
+                                <h2 class="mb-0 fw-bold" th:text="${totalProductsSold}">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white shadow border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.8;">Tá»•ng ÄÆ¡n HĂ ng
+                                </h6>
+                                <h2 class="mb-0 fw-bold" th:text="${totalOrders}">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3 fw-bold">Chá»©c NÄƒng</h4>
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-between">
+                        <div>
+                            <h3 class="fw-bold">Products</h3>
+                            <p class="text-muted">Manage computer gear products</p>
+                        </div>
+                        <a href="/products" class="btn btn-dark w-100 mt-3">Manage Products</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-between">
+                        <div>
+                            <h3 class="fw-bold">Categories</h3>
+                            <p class="text-muted">Manage product categories</p>
+                        </div>
+                        <a href="/categories" class="btn btn-primary w-100 mt-3">Manage Categories</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-between">
+                        <div>
+                            <h3 class="fw-bold">Inventory</h3>
+                            <p class="text-muted">Manage product stock</p>
+                        </div>
+                        <a href="/inventory" class="btn btn-success w-100 mt-3">Inventory</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-between">
+                        <div>
+                            <h3 class="fw-bold">Orders</h3>
+                            <p class="text-muted">Manage customer orders</p>
+                        </div>
+                        <a href="/admin/orders" class="btn btn-warning text-dark fw-bold w-100 mt-3">Manage Orders</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\inventory.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Inventory</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Inventory Management</h2>
+            <a href="/home" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Import Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="i : ${inventories}">
+                    <td th:text="${i.id}"></td>
+                    <td th:text="${i.product.productName}">
+                    </td>
+                    <td th:text="${i.quantity}"></td>
+                    <td th:text="${i.importDate}"></td>
+                    <td>
+                        <a th:href="@{/inventory/edit/{id}(id=${i.id})}" class="btn btn-warning btn-sm">Edit</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\kh_home.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gear Computer Shop - Trang Chá»§</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: #1a1d20 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #0d6efd !important;
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner h1 {
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .product-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            position: relative;
+        }
+
+        .out-of-stock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.55);
+            z-index: 10;
+            border-radius: 15px;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .product-card:hover .out-of-stock-overlay {
+            background-color: rgba(0, 0, 0, 0.65);
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image-wrapper {
+            position: relative;
+            overflow: hidden;
+            padding: 15px;
+            background: #fff;
+        }
+
+        .product-img {
+            height: 200px;
+            width: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.05);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .product-brand {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2b2b2b;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-price {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #dc3545;
+        }
+
+        .category-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(13, 110, 253, 0.9);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        footer {
+            background-color: #1a1d20 !important;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-pc-display me-2"></i>GEAR SHOP
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-semibold" href="/">Trang Chá»§</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="/">Sáº£n Pháº©m</a>
+                    </li>
+                    <li class="nav-item"
+                        th:if="${session.user != null && session.role != 'ADMIN' && session.role != 'STAFF'}">
+                        <a class="nav-link fw-semibold" href="/my-orders">Lá»‹ch Sá»­ Mua HĂ ng</a>
+                    </li>
+                    <li class="nav-item"
+                        th:if="${session.user != null && (session.role == 'ADMIN' || session.role == 'STAFF')}">
+                        <a class="nav-link fw-semibold text-warning" href="/home">Dashboard</a>
+                    </li>
+                </ul>
+
+                <form class="d-flex me-5" th:action="@{/find}" method="get">
+                    <div class="input-group">
+                        <input class="form-control border-0 bg-light" type="search" name="name"
+                            placeholder="TĂ¬m kiáº¿m ...">
+                        <button class="btn btn-primary px-2" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="d-flex align-items-center gap-2">
+
+                    <a th:if="${session.user == null}" href="/login"
+                        class="btn btn-warning rounded-pill px-4 fw-semibold">
+                        Login
+                    </a>
+                    <a th:if="${session.user == null}" href="/register"
+                        class="btn btn-outline-light rounded-pill px-4 fw-semibold">
+                        Register
+                    </a>
+
+                    <div th:if="${session.user != null}" class="d-flex align-items-center">
+                        <span class="nav-item me-3" th:if="${session.user != null}">
+                            <a class="nav-link fw-semibold text-white m-0 position-relative p-1" href="/cart">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                <span
+                                    class="position-absolute top-35 start-25 translate-middle badge rounded-pill bg-danger"
+                                    th:if="${cartCount > 0}" th:text="${cartCount}">0</span>
+                            </a>
+                        </span>
+                        <span class="text-white me-3 fw-semibold">
+                            Xin chĂ o, <span th:text="${session.user.username} "
+                                class='text-success fw-bold'>Username</span>
+                        </span>
+                        <a href="/logout" class="btn btn-danger btn-sm rounded-pill px-3">
+                            Logout
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mt-4 shadow-sm"
+            role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}" class="fw-semibold">XĂ¡c nháº­n Ä‘Ă£ mua sáº£n pháº©m</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mt-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}" class="fw-semibold">Lá»—i xáº£y ra</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="hero-banner text-center mb-5">
+            <h1 class="display-4">NĂ¢ng Cáº¥p GĂ³c MĂ¡y Cá»§a Báº¡n</h1>
+            <p class="lead mt-3 opacity-75">Cung cáº¥p Gaming Mouse, Keyboard, Headphone chĂ­nh hĂ£ng vá»›i giĂ¡ tá»‘t nháº¥t.</p>
+            <a href="#product-section" class="btn btn-primary btn-lg mt-3 rounded-pill px-4 shadow">KhĂ¡m PhĂ¡ Ngay</a>
+        </div>
+
+        <div id="product-section" class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">Sáº£n Pháº©m Ná»•i Báº­t</h2>
+                <p class="text-muted mb-0 mt-1">Lá»±a chá»n nhá»¯ng trang bá»‹ tá»‘t nháº¥t cho nhu cáº§u cá»§a báº¡n</p>
+            </div>
+
+            <form method="get" th:action="@{/shop/category}" class="d-flex align-items-center gap-2">
+                <label class="me-2 text-muted fw-semibold mb-0 text-nowrap">Lá»c theo:</label>
+                <select name="id" class="form-select border-0 shadow-sm fw-semibold"
+                    style="cursor: pointer; background-color: #fff; width: auto;" onchange="this.form.submit()">
+                    <option value="" th:selected="${selectedCategoryId == null}">Táº¥t cáº£ danh má»¥c</option>
+                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.categoryName}"
+                        th:selected="${selectedCategoryId == c.id}"></option>
+                </select>
+
+                <select name="sort" class="form-select border-0 shadow-sm"
+                    style="cursor: pointer; background-color: #fff;" onchange="this.form.submit()">
+                    <option value="random"
+                        th:selected="${selectedSort == 'random' || selectedSort == null || selectedSort == ''}">Xáº¿p theo
+                        giĂ¡</option>
+                    <option value="priceAsc" th:selected="${selectedSort == 'priceAsc'}">GiĂ¡ tÄƒng dáº§n</option>
+                    <option value="priceDesc" th:selected="${selectedSort == 'priceDesc'}">GiĂ¡ giáº£m dáº§n</option>
+                </select>
+            </form>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6" th:each="p : ${products}">
+                <div class="card product-card h-100 shadow-sm">
+                    <!-- Out of stock overlay -->
+                    <a th:if="${p.status == 'OUT_OF_STOCK'}" th:href="@{/product/{id}(id=${p.id})}"
+                        class="out-of-stock-overlay d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                        <span class="badge bg-danger px-3 py-2 fs-5 shadow-sm">Háº¾T HĂ€NG</span>
+                    </a>
+
+                    <div class="product-image-wrapper text-center border-bottom">
+                        <span class="category-badge shadow-sm" th:text="${p.category.categoryName}"></span>
+                        <a th:href="@{/product/{id}(id=${p.id})}">
+                            <img th:src="${p.imageUrl != null && !p.imageUrl.isEmpty()} ? @{/images/{img}(img=${p.imageUrl})} : 'https://placehold.co/300x200?text=No+Image'"
+                                class="product-img" alt="Product Image">
+                        </a>
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <span class="product-brand mb-1" th:text="${p.brand}"></span>
+                        <h5 class="card-title product-title">
+                            <a th:href="@{/product/{id}(id=${p.id})}"
+                                class="text-decoration-none text-dark hover-primary" th:text="${p.productName}"
+                                th:title="${p.productName}"></a>
+                        </h5>
+
+                        <div class="mt-auto d-flex justify-content-between align-items-center pt-3">
+                            <div class="product-price">
+                                <span th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}"></span> <span
+                                    class="fs-6 text-muted fw-normal">VND</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <form th:if="${p.status == 'AVAILABLE'}" th:action="@{/cart/add/{id}(id=${p.id})}"
+                                    method="post" class="m-0">
+                                    <button type="submit" class="btn btn-dark rounded-circle"
+                                        style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"
+                                        title="ThĂªm VĂ o Giá» HĂ ng">
+                                        <i class="bi bi-cart-plus fs-5"></i>
+                                    </button>
+                                </form>
+                                <button th:if="${p.status == 'OUT_OF_STOCK'}" class="btn btn-secondary rounded-circle"
+                                    disabled
+                                    style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; z-index: 15;"
+                                    title="Háº¿t hĂ ng">
+                                    <i class="bi bi-cart-x fs-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${#lists.isEmpty(products)}" class="col-12 text-center py-5">
+                <h4 class="text-muted">KhĂ´ng tĂ¬m tháº¥y sáº£n pháº©m nĂ o.</h4>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-white text-center py-4">
+        <div class="container">
+            <h5 class="fw-bold mb-2">Gear Computer Shop</h5>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\login.html
+================================================================
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="card p-4 mx-auto" style="width:400px">
+            <h2 class="text-center mb-4">
+                Login
+            </h2>
+
+            <form th:action="@{/login}" method="post">
+                <div class="mb-3">
+                    <label>Username</label>
+                    <input type="text" name="username" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Password</label>
+                    <input type="password" name="password" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+            <p class="text-center mt-3 mb-0">
+                ChÆ°a cĂ³ tĂ i khoáº£n? <a href="/register" class="text-decoration-none">ÄÄƒng kĂ½ ngay</a>
+            </p>
+            <div class="text-center mt-2">
+                <a href="/" class="text-secondary text-decoration-none small">Quay láº¡i Trang Chá»§</a>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\my-orders.html
+================================================================
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <title>My Orders</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Lá»‹ch Sá»­ Mua HĂ ng</h2>
+            <a href="/" class="btn btn-secondary">Quay láº¡i Trang Chá»§</a>
+        </div>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Order Date</th>
+                    <th>Total Price</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="o : ${orders}">
+                    <td th:text="${o.id}"></td>
+                    <td th:text="${o.orderDate}"></td>
+                    <td th:text="${o.totalPrice}"></td>
+                    <td th:text="${o.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\product-detail.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: #1a1d20 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #0d6efd !important;
+        }
+
+        .product-detail-card {
+            border: none;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .product-gallery {
+            background-color: #ffffff;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid #f0f0f0;
+            min-height: 450px;
+        }
+
+        .product-img {
+            max-height: 380px;
+            max-width: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .product-img:hover {
+            transform: scale(1.03);
+        }
+
+        .product-info-column {
+            padding: 40px;
+        }
+
+        .product-brand {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #6c757d;
+            font-weight: 700;
+        }
+
+        .product-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #1a1d20;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .category-badge {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .product-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #dc3545;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .product-price span.currency {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-left: 5px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1d20;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .product-description {
+            color: #495057;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            white-space: pre-line;
+        }
+
+        .quantity-input {
+            max-width: 90px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 10px 0 0 10px !important;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-pc-display me-2"></i>GEAR SHOP
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="/">Trang Chá»§</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="/">Sáº£n Pháº©m</a>
+                    </li>
+                    <li class="nav-item"
+                        th:if="${session.user != null && session.role != 'ADMIN' && session.role != 'STAFF'}">
+                        <a class="nav-link fw-semibold" href="/my-orders">Lá»‹ch Sá»­ Mua HĂ ng</a>
+                    </li>
+                    <li class="nav-item"
+                        th:if="${session.user != null && (session.role == 'ADMIN' || session.role == 'STAFF')}">
+                        <a class="nav-link fw-semibold text-warning" href="/home">Dashboard</a>
+                    </li>
+                </ul>
+
+                <form class="d-flex me-5" th:action="@{/find}" method="get">
+                    <div class="input-group">
+                        <input class="form-control border-0 bg-light" type="search" name="name"
+                            placeholder="TĂ¬m kiáº¿m ...">
+                        <button class="btn btn-primary px-2" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="d-flex align-items-center gap-2">
+                    <a th:if="${session.user == null}" href="/login"
+                        class="btn btn-warning rounded-pill px-4 fw-semibold">
+                        Login
+                    </a>
+                    <a th:if="${session.user == null}" href="/register"
+                        class="btn btn-outline-light rounded-pill px-4 fw-semibold">
+                        Register
+                    </a>
+
+                    <div th:if="${session.user != null}" class="d-flex align-items-center">
+                        <span class="nav-item me-3" th:if="${session.user != null}">
+                            <a class="nav-link fw-semibold text-white m-0 position-relative p-2" href="/cart">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                <span
+                                    class="position-absolute top-35 start-25 translate-middle badge rounded-pill bg-danger"
+                                    th:if="${cartCount > 0}" th:text="${cartCount}">0</span>
+                            </a>
+                        </span>
+                        <span class="text-white me-3 fw-semibold">
+                            Xin chĂ o, <span th:text="${session.user.username} "
+                                class='text-success fw-bold'>Username</span>
+                        </span>
+                        <a href="/logout" class="btn btn-danger btn-sm rounded-pill px-3">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mt-2 mb-4 shadow-sm"
+            role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}" class="fw-semibold">ThĂ nh cĂ´ng</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mt-2 mb-4 shadow-sm"
+            role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}" class="fw-semibold">Lá»—i</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none"><i
+                            class="bi bi-house-door-fill"></i> Trang chá»§</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Chi tiáº¿t sáº£n pháº©m</li>
+            </ol>
+        </nav>
+
+        <div class="card product-detail-card">
+            <div class="row g-0">
+                <div class="col-md-6">
+                    <div class="product-gallery">
+                        <img th:src="@{/images/{img}(img=${product.imageUrl})}" class="product-img img-fluid"
+                            alt="Product Image">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="product-info-column">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="product-brand" th:text="${product.brand}">Brand</span>
+                            <div>
+                                <span class="badge bg-success status-badge" th:if="${product.status == 'AVAILABLE'}">CĂ²n
+                                    hĂ ng</span>
+                                <span class="badge bg-danger status-badge"
+                                    th:if="${product.status == 'OUT_OF_STOCK'}">Háº¿t hĂ ng</span>
+                            </div>
+                        </div>
+
+                        <h1 class="product-title" th:text="${product.productName}">Product Name</h1>
+
+                        <span class="category-badge" th:text="${product.category.categoryName}">Category</span>
+
+                        <div class="product-price">
+                            <span
+                                th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}">Price</span>
+                            <span class="currency">VND</span>
+                        </div>
+
+                        <div class="section-title">MĂ´ táº£ </div>
+                        <p class="product-description" th:text="${product.description}">
+                            Description text...
+                        </p>
+
+                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="mt-4">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="input-group" style="max-width: 100px;"
+                                    th:if="${product.status == 'AVAILABLE'}">
+                                    <input type="number" name="quantity" value="1" min="1"
+                                        class="form-control quantity-input"
+                                        style="border-radius: 0 10px 10px 0 !important; border-left: none;">
+                                </div>
+                                <button type="submit" th:if="${product.status == 'AVAILABLE'}"
+                                    class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow d-flex align-items-center gap-2">
+                                    ThĂªm vĂ o giá»
+                                </button>
+                                <button type="button" th:if="${product.status == 'OUT_OF_STOCK'}" disabled
+                                    class="btn btn-danger btn-lg rounded-pill px-5 py-3 shadow d-flex align-items-center gap-2">
+                                    Sáº£n pháº©m Ä‘Ă£ háº¿t hĂ ng
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\products.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Products</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between mb-3 align-items-center">
+            <h2>Product Management</h2>
+            <div>
+                <a href="/home" class="btn btn-secondary me-2">Back to Dashboard</a>
+                <a th:if="${session.role=='ADMIN'}" href="/add" class="btn btn-primary">
+                    Add Product
+                </a>
+            </div>
+        </div>
+
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="p : ${listsp}">
+                    <td th:text="${p.id}"></td>
+                    <td th:text="${p.getProductName()}"></td>
+                    <td th:text="${p.getBrand()}"></td>
+                    <td th:text="${p.getPrice()}"></td>
+                    <td th:text="${p.getStatus()}"></td>
+                    <td>
+                        <a th:if="${session.role=='ADMIN'}" th:href="@{/edit/{id}(id=${p.id})}"
+                            class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+                        <a th:if="${session.role=='ADMIN'}" th:href="@{/del/{id}(id=${p.id})}"
+                            class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+                        <a th:if="${session.role == 'CUSTOMER'}" th:href="@{/buy/{id}(id=${p.id})}"
+                            class="btn btn-success btn-sm">Buy</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
+
+
+================================================================
+File: src\main\resources\templates\register.html
+================================================================
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ÄÄƒng KĂ½ TĂ i Khoáº£n - Gear Shop</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .register-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            width: 450px;
+            padding: 2.5rem;
+        }
+
+        .register-title {
+            font-weight: bold;
+            color: #1a1d20;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .btn-primary {
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.6rem;
+        }
+
+        .login-link {
+            color: #0d6efd;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-card">
+        <div class="text-center mb-4">
+            <h2 class="register-title">Register</h2>
+        </div>
+
+        <form th:action="@{/register}" method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username *</label>
+                <div class="input-group">
+                    <input type="text" id="username" name="username" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password *</label>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="******"
+                        required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="fullName" class="form-label">Há» tĂªn *</label>
+                <div class="input-group">
+                    <input type="text" id="fullName" name="fullName" class="form-control" placeholder="Nháº­p há» vĂ  tĂªn"
+                        required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <div class="input-group">
+                    <input type="email" id="email" name="email" class="form-control" placeholder="abc@mail.com">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="phone" class="form-label">Sá»‘ Ä‘iá»‡n thoáº¡i</label>
+                <div class="input-group">
+                    <input type="text" id="phone" name="phone" class="form-control" placeholder="+84">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-2">
+                ÄÄƒng KĂ½
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <span class="text-muted">ÄĂ£ cĂ³ tĂ i khoáº£n?</span>
+            <a href="/login" class="login-link ms-1">ÄÄƒng nháº­p ngay</a>
+            <div class="mt-2">
+                <a href="/" class="text-secondary text-decoration-none small">Trang Chá»§</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+

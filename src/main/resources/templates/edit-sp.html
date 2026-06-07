@@ -31,7 +31,7 @@
 
                 <div class="mb-3">
                     <label>Price</label>
-                    <input type="number" class="form-control" th:field="*{price}">
+                    <input type="number" class="form-control" th:field="*{price}" min="0">
                 </div>
                 <div class="mb-3">
                     <label>Category</label>
@@ -43,7 +43,7 @@
 
                 <div class="mb-3">
                     <label>Product Image (Chọn ảnh mới để thay đổi)</label>
-                    <input type="file" name="imageFile" class="form-control" accept="image/*">
+                    <input type="file" name="imageFile" class="form-control" accept=".jpg,.jpeg,.png,.webp">
                 </div>
 
                 <div class="mb-3">

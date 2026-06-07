@@ -46,6 +46,24 @@
             overflow: hidden;
             transition: all 0.3s ease;
             background: #ffffff;
+            position: relative;
+        }
+
+        .out-of-stock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.55);
+            z-index: 10;
+            border-radius: 15px;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .product-card:hover .out-of-stock-overlay {
+            background-color: rgba(0, 0, 0, 0.65);
         }
 
         .product-card:hover {
@@ -109,6 +127,7 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
+            z-index: 2;
         }
 
         footer {
@@ -137,8 +156,13 @@
                     <li class="nav-item">
                         <a class="nav-link fw-semibold" href="/">Sản Phẩm</a>
                     </li>
-                    <li class="nav-item" th:if="${session.user != null}">
+                    <li class="nav-item"
+                        th:if="${session.user != null && session.role != 'ADMIN' && session.role != 'STAFF'}">
                         <a class="nav-link fw-semibold" href="/my-orders">Lịch Sử Mua Hàng</a>
+                    </li>
+                    <li class="nav-item"
+                        th:if="${session.user != null && (session.role == 'ADMIN' || session.role == 'STAFF')}">
+                        <a class="nav-link fw-semibold text-warning" href="/home">Dashboard</a>
                     </li>
                 </ul>
 
@@ -165,8 +189,11 @@
 
                     <div th:if="${session.user != null}" class="d-flex align-items-center">
                         <span class="nav-item me-3" th:if="${session.user != null}">
-                            <a class="nav-link fw-semibold text-white" href="/cart">
-                                <i class="bi bi-cart3 me-1"></i>Giỏ Hàng
+                            <a class="nav-link fw-semibold text-white m-0 position-relative p-1" href="/cart">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                <span
+                                    class="position-absolute top-35 start-25 translate-middle badge rounded-pill bg-danger"
+                                    th:if="${cartCount > 0}" th:text="${cartCount}">0</span>
                             </a>
                         </span>
                         <span class="text-white me-3 fw-semibold">
@@ -207,12 +234,22 @@
                 <p class="text-muted mb-0 mt-1">Lựa chọn những trang bị tốt nhất cho nhu cầu của bạn</p>
             </div>
 
-            <form method="get" th:action="@{/shop/category}" class="d-flex align-items-center">
-                <label class="me-2 text-muted fw-semibold mb-0 text-nowrap"> Lọc theo:</label>
+            <form method="get" th:action="@{/shop/category}" class="d-flex align-items-center gap-2">
+                <label class="me-2 text-muted fw-semibold mb-0 text-nowrap">Lọc theo:</label>
                 <select name="id" class="form-select border-0 shadow-sm fw-semibold"
+                    style="cursor: pointer; background-color: #fff; width: auto;" onchange="this.form.submit()">
+                    <option value="" th:selected="${selectedCategoryId == null}">Tất cả danh mục</option>
+                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.categoryName}"
+                        th:selected="${selectedCategoryId == c.id}"></option>
+                </select>
+
+                <select name="sort" class="form-select border-0 shadow-sm"
                     style="cursor: pointer; background-color: #fff;" onchange="this.form.submit()">
-                    <option value="">Tất cả danh mục</option>
-                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.categoryName}"></option>
+                    <option value="random"
+                        th:selected="${selectedSort == 'random' || selectedSort == null || selectedSort == ''}">Xếp theo
+                        giá</option>
+                    <option value="priceAsc" th:selected="${selectedSort == 'priceAsc'}">Giá tăng dần</option>
+                    <option value="priceDesc" th:selected="${selectedSort == 'priceDesc'}">Giá giảm dần</option>
                 </select>
             </form>
         </div>
@@ -220,6 +257,12 @@
         <div class="row g-4">
             <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6" th:each="p : ${products}">
                 <div class="card product-card h-100 shadow-sm">
+                    <!-- Out of stock overlay -->
+                    <a th:if="${p.status == 'OUT_OF_STOCK'}" th:href="@{/product/{id}(id=${p.id})}"
+                        class="out-of-stock-overlay d-flex flex-column align-items-center justify-content-center text-decoration-none">
+                        <span class="badge bg-danger px-3 py-2 fs-5 shadow-sm">HẾT HÀNG</span>
+                    </a>
+
                     <div class="product-image-wrapper text-center border-bottom">
                         <span class="category-badge shadow-sm" th:text="${p.category.categoryName}"></span>
                         <a th:href="@{/product/{id}(id=${p.id})}">
@@ -242,13 +285,20 @@
                                     class="fs-6 text-muted fw-normal">VND</span>
                             </div>
                             <div class="d-flex gap-2 align-items-center">
-                                <form th:action="@{/cart/add/{id}(id=${p.id})}" method="post" class="m-0">
+                                <form th:if="${p.status == 'AVAILABLE'}" th:action="@{/cart/add/{id}(id=${p.id})}"
+                                    method="post" class="m-0">
                                     <button type="submit" class="btn btn-dark rounded-circle"
                                         style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"
                                         title="Thêm Vào Giỏ Hàng">
                                         <i class="bi bi-cart-plus fs-5"></i>
                                     </button>
                                 </form>
+                                <button th:if="${p.status == 'OUT_OF_STOCK'}" class="btn btn-secondary rounded-circle"
+                                    disabled
+                                    style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; z-index: 15;"
+                                    title="Hết hàng">
+                                    <i class="bi bi-cart-x fs-5"></i>
+                                </button>
                             </div>
                         </div>
                     </div>

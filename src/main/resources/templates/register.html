@@ -59,12 +59,13 @@
             <h2 class="register-title">Register</h2>
         </div>
 
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
         <form th:action="@{/register}" method="post">
             <div class="mb-3">
                 <label for="username" class="form-label">Username *</label>
                 <div class="input-group">
-                    <input type="text" id="username" name="username" class="form-control" placeholder="tên đăng nhập"
-                        required>
+                    <input type="text" id="username" name="username" class="form-control" required>
                 </div>
             </div>
 
@@ -87,7 +88,9 @@
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <div class="input-group">
-                    <input type="email" id="email" name="email" class="form-control" placeholder="abc@mail.com">
+                    <input type="email" id="email" name="email" class="form-control" placeholder="abc@mail.com"
+                           pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                           title="Vui lòng nhập đúng định dạng email (ví dụ: abc@mail.com)">
                 </div>
             </div>
 

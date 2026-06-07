@@ -1,25 +1,29 @@
 package com.example.qlgear.controller;
 
-import com.example.qlgear.entity.Category;
-import com.example.qlgear.entity.Product;
-import com.example.qlgear.entity.User;
-import com.example.qlgear.service.OrderService;
-import com.example.qlgear.service.ProductService;
-import com.example.qlgear.service.CategoryService;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import com.example.qlgear.entity.OrderEntity;
-import java.util.List;
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.example.qlgear.entity.OrderEntity;
+import com.example.qlgear.entity.Product;
+import com.example.qlgear.entity.User;
+import com.example.qlgear.service.CategoryService;
+import com.example.qlgear.service.OrderService;
+import com.example.qlgear.service.ProductService;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class ProductController {
@@ -42,24 +46,24 @@ public class ProductController {
         List<OrderEntity> orders = serviceOrder.getAllOrders();
         long totalOrders = orders.size();
         
-        // Thống kê doanh thu
+        //doanh thu
         double totalRevenue = orders.stream()
                 .filter(o -> "COMPLETED".equalsIgnoreCase(o.getStatus()))
-                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice() : 0.0)
+                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice().doubleValue() : 0.0)
                 .sum();
 
         LocalDate today = LocalDate.now();
         double revenueToday = orders.stream()
                 .filter(o -> "COMPLETED".equalsIgnoreCase(o.getStatus()))
                 .filter(o -> o.getOrderDate() != null && o.getOrderDate().toLocalDate().isEqual(today))
-                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice() : 0.0)
+                .mapToDouble(o -> o.getTotalPrice() != null ? o.getTotalPrice().doubleValue() : 0.0)
                 .sum();
 
         // Tổng số lượng sản phẩm đã bán
         long totalProductsSold = orders.stream()
                 .filter(o -> "COMPLETED".equalsIgnoreCase(o.getStatus()))
                 .flatMap(o -> o.getOrderItems().stream())
-                .mapToLong(oi -> oi.getQuantity() != null ? oi.getQuantity() : 0)
+                .mapToLong(oi -> oi.getQuantity() != null ? oi.getQuantity().longValue() : 0L)
                 .sum();
 
         model.addAttribute("totalProducts", totalProducts);
@@ -73,18 +77,20 @@ public class ProductController {
         return "home";
     }
     @GetMapping("/")
-    public String customerHome(Model model){
-
-        model.addAttribute(
-                "products",
-                service.getAllProducts()
-        );
-
-        model.addAttribute(
-                "categories",
-                serviceCate.getAllCategory()
-        );
-
+    public String customerHome(
+            @RequestParam(name = "id", required = false) String id,
+            @RequestParam(name = "sort", required = false) String sort,
+            Model model){
+        Long selectedId = null;
+        if (id != null && !id.trim().isEmpty()) {
+            try {
+                selectedId = Long.valueOf(id);
+            } catch (NumberFormatException ignored) {}
+        }
+        model.addAttribute("products", service.getProducts(selectedId, sort));
+        model.addAttribute("categories", serviceCate.getAllCategory());
+        model.addAttribute("selectedCategoryId", selectedId);
+        model.addAttribute("selectedSort", sort);
         return "kh_home";
     }
     //view list sp
@@ -112,22 +118,24 @@ public class ProductController {
             return null;
         }
         try {
-            // Lấy tên tệp một cách an toàn (loại bỏ đường dẫn nếu trình duyệt gửi lên cả đường dẫn)
             String fileName = Paths.get(file.getOriginalFilename()).getFileName().toString();
-            
-            // Lưu vào thư mục target/classes/static/images/ để hiển thị ngay lập tức
+            String lowerName = fileName.toLowerCase();
+            if (!lowerName.endsWith(".jpg") && !lowerName.endsWith(".jpeg") && 
+                !lowerName.endsWith(".png") && !lowerName.endsWith(".webp")) {
+                return null;
+            }
+
             Path targetPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", "images", fileName);
             Files.createDirectories(targetPath.getParent());
             Files.write(targetPath, file.getBytes());
 
-            // Lưu vào thư mục src/main/resources/static/images/ để lưu giữ lâu dài trong dự án
             Path srcPath = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", "images", fileName);
             Files.createDirectories(srcPath.getParent());
             Files.write(srcPath, file.getBytes());
 
             return fileName;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (java.io.IOException e) {
+            System.err.println("Lỗi lưu ảnh: " + e.getMessage());
             return null;
         }
     }
@@ -138,9 +146,14 @@ public class ProductController {
         String role = (String) session.getAttribute("role");
         if (role == null) return "redirect:/login";
         if (!"ADMIN".equals(role)) return "redirect:/products";
+        if (product.getPrice() != null && product.getPrice() < 0) {
+            product.setPrice(0.0);
+        }
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = saveImage(imageFile);
-            product.setImageUrl(fileName);
+            if (fileName != null) {
+                product.setImageUrl(fileName);
+            }
         }
         service.addProduct(product);
         return "redirect:/products";
@@ -161,9 +174,17 @@ public class ProductController {
         String role = (String) session.getAttribute("role");
         if (role == null) return "redirect:/login";
         if (!"ADMIN".equals(role)) return "redirect:/products";
+        if (sp.getPrice() != null && sp.getPrice() < 0) {
+            sp.setPrice(0.0);
+        }
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = saveImage(imageFile);
-            sp.setImageUrl(fileName);
+            if (fileName != null) {
+                sp.setImageUrl(fileName);
+            } else {
+                Product oldProduct = service.getProductById(id);
+                sp.setImageUrl(oldProduct.getImageUrl());
+            }
         } else {
             // Giữ lại ảnh cũ nếu không tải ảnh mới lên
             Product oldProduct = service.getProductById(id);
@@ -213,17 +234,19 @@ public class ProductController {
         return "kh_home";
     }
     @GetMapping("/shop/category")
-    public String filterCategory(@RequestParam(name = "id", required = false) String id, Model model) {
-        if (id == null || id.trim().isEmpty()) {
-            model.addAttribute("products", service.getAllProducts());
-        } else {
+    public String filterCategory(
+            @RequestParam(name = "id", required = false) String id,
+            @RequestParam(name = "sort", required = false) String sort,
+            Model model) {
+        Long selectedId = null;
+        if (id != null && !id.trim().isEmpty()) {
             try {
-                Long categoryId = Long.parseLong(id);
-                model.addAttribute("products", service.find_byCate(categoryId));
-            } catch (NumberFormatException e) {
-                model.addAttribute("products", service.getAllProducts());
-            }
+                selectedId = Long.valueOf(id);
+            } catch (NumberFormatException ignored) {}
         }
+        model.addAttribute("products", service.getProducts(selectedId, sort));
+        model.addAttribute("selectedCategoryId", selectedId);
+        model.addAttribute("selectedSort", sort);
         model.addAttribute("categories", serviceCate.getAllCategory());
         return "kh_home";
     }
